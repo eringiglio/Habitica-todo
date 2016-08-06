@@ -15,6 +15,8 @@ import requests
 from pytodoist import todoist
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
+from habitica import core
+from os import path # will let me call files from a specific path
 
 #Authorships, etc
 __author__ = "Erin Giglio"
@@ -32,12 +34,12 @@ __status__ = "Development"
 tod_user = todoist.login('eringiglio@gmail.com','Liathro1!')
 TodTaskList = []
 
+#Telling the site where the config stuff for Habitica can go......
+file_path = path.expanduser('~/habitica/auth.cfg')
+auth = open(file_path)
+
 #And here's where my Habitica API keys are gonna go.
-
-
-#Habitica is trickier, because we're going to want to import the api...
-hab_all = urlopen('http://habitica.com')
-
+core.load_auth(auth)
 
 
 #Okay, now I need a list of todoist tasks. How do achieve that. 
