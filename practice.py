@@ -51,6 +51,7 @@ for task in tod_tasks: #not sure this is necessary
 #regardless of habit, todo, and weekly
 
 
+\
 
 #Now we'll want to check each task in habitica against the todoist ones... uh, fuck, how do I do this 
 
