@@ -42,9 +42,20 @@ hab_habits = call(["habitica","habits"])
 hab_dailies = call(["habitica","dailies"])
 hab_todos = call(["habitica", "todos"])
 
-#Now we'll want to check each task in habitica against the todoist ones...
+#Now we'll want to check each task in habitica against the todoist ones... uh, fuck, how do I do this 
 
+	#If we do find a match, check status in both programs
+	
+		#If we find that status agrees, end
+		
+		#If we find status does not agree, mark task completed
+		call(["habitica"])
 
+	#If the task in habitica is not found in todoist, make a task in habitica. Default to to-do unless repeating
+	if #task in todoist repeated more often than 	
+
+		
+		
 #Here's where I want Hab tasks to go by default
 inbox = todo_user.get_project('Inbox')
 
