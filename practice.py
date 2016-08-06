@@ -13,6 +13,7 @@ Functionality to add:
 import habitica 
 from pytodoist import todoist
 from subprocess import call # useful for running command line commands in python
+from urllib2 import urlopen
 
 #Authorships, etc
 __author__ = "Erin Giglio"
@@ -28,27 +29,53 @@ __status__ = "Development"
 
 #Here's where I'm putting my login stuff for Todoist.
 tod_user = todoist.login('eringiglio@gmail.com','Liathro1!')
-tod_response = tod_api.sync()
 TodTaskList = []
+
+#And here's where my Habitica API keys are gonna go.
+
+
+#Habitica is trickier, because we're going to want to import the api...
+hab_all = urlopen('http://habitica.com')
+
+
 
 #Okay, now I need a list of todoist tasks. How do achieve that. 
 tod_tasks = tod_user.get_tasks()
-for task in tod_tasks:
+for task in tod_tasks: #not sure this is necessary 
 	TodTaskList.append(task.content.encode("ascii"))
 
 #Now, let's get a list of habitica tasks. We want to look at all of them by name
 #regardless of habit, todo, and weekly
-hab_habits = call(["habitica","habits"])
-hab_dailies = call(["habitica","dailies"])
-hab_todos = call(["habitica", "todos"])
+
+
 
 #Now we'll want to check each task in habitica against the todoist ones... uh, fuck, how do I do this 
 
-	#If we do find a match, check status in both programs
+#For all the tasks that DO have an analog in both services: 
+""""
+Note, this section will need proper writing--this is all conceptual at the moment
+"""
+for task in : 
+	if TOD.complete = HAB.complete:
+		end
+	else: #NOTE this will need to be written properly in code
+		TOD.complete = complete
+		HAB.complete = complete 
 	
+
+
+#Pulling all the todoist tasks with no habitica equivalent
+Tod_uniq_tasks: list(set(TodTaskList) - set(HabTaskList))
+
+
+
+for task in tod_tasks: if TOD is HAB:
+	#If we do find a match, check status in both programs
+	if : 
 		#If we find that status agrees, end
 		
-		#If we find status does not agree, mark task completed
+	#If we find status does not agree, mark task completed
+	else: 
 		call(["habitica"])
 
 	#If the task in habitica is not found in todoist, make a task in habitica. Default to to-do unless repeating
