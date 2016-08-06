@@ -11,6 +11,7 @@ Functionality to add:
 #Python library imports - this will be functionalities I want to shorten
 #   as I use them. habitica???
 import habitica 
+import requests
 from pytodoist import todoist
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
