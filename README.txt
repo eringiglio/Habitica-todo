@@ -7,7 +7,10 @@ project on Todoist.
 
 INSTALLATION
 
+You'll want to install two existing API Python wrappers that this utility depends on...
 
+pip install habitica
+pip install pytodoist
 
 TASK DIFFICULTY
 I felt that it would be good if task difficulty translated between tasks created on Todoist and 
