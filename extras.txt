@@ -1,0 +1,14 @@
+Slips of code that didn't work, to be saved:
+
+
+	# If you want to insert your own filepath, you *must* insert a full filepath starting from ~. 
+	# if len(sys.argv) == 1:
+		# config = '~/Habitica-todo/auth.cfg'
+	# else:
+		# config = path.expanduser(file_path) 
+		
+#Now we'll want to check each task in habitica against the todoist ones. Let's get a lisk of task names.
+tod_uniq_tasks = list(set(tod_names) - set(hab_names))
+hab_uniq_tasks = list(set(hab_names) - set(tod_names))
+shared_tasks = list(set(hab_names) - set(hab_uniq_tasks))
+

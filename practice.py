@@ -9,13 +9,11 @@ Functionality to add:
 """
 
 #Python library imports - this will be functionalities I want to shorten
-#   as I use them. habitica???
-import habitica 
+import habitica #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
 import requests
 from pytodoist import todoist
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
-from habitica import core
 from os import path # will let me call files from a specific path
 
 #Authorships, etc
@@ -32,36 +30,30 @@ __status__ = "Development"
 
 #Here's where I'm putting my login stuff for Todoist.
 tod_user = todoist.login('eringiglio@gmail.com','Liathro1!')
-TodTaskList = []
+tod_names = []
 
-#Telling the site where the config stuff for Habitica can go......
-file_path = path.expanduser('~/habitica/auth.cfg')
-auth = open(file_path)
+#Telling the site where the config stuff for Habitica can go and get a list of habitica tasks...
+auth, hbt = main.get_started('auth.cfg')  
+hab_names =  main.get_task_names(hbt)
 
-#And here's where my Habitica API keys are gonna go.
-core.load_auth(auth)
-
+#Todoist tasks are, I think, classes. Let's try an alternate way of getting the tasks I want....
+url = 'https://habitica.com/api/v3/tasks/user/'
+response = requests.get(url,headers=auth)
+hab_tasks = response.json()
 
 #Okay, now I need a list of todoist tasks. How do achieve that. 
 tod_tasks = tod_user.get_tasks()
-for task in tod_tasks: #not sure this is necessary 
-	TodTaskList.append(task.content.encode("ascii"))
+for task in tod_tasks: 
+	tod_names.append(task.content)
 
-#Now, let's get a list of habitica tasks. We want to look at all of them by name
-#regardless of habit, todo, and weekly
+	
 
-
-\
-
-#Now we'll want to check each task in habitica against the todoist ones... uh, fuck, how do I do this 
-
-#For all the tasks that DO have an analog in both services: 
-""""
-Note, this section will need proper writing--this is all conceptual at the moment
-"""
-for task in : 
-	if TOD.complete = HAB.complete:
-		end
+#For all the tasks that DO have an analog in both services
+for task in shared_tasks: 
+	tod_completion = {'text':}
+	hab_completion = {'text': task, '}
+	if hab_completion = tod_completion:
+		pass 
 	else: #NOTE this will need to be written properly in code
 		TOD.complete = complete
 		HAB.complete = complete 

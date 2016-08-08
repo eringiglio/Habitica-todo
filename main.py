@@ -17,6 +17,7 @@ import json
 import logging
 import netrc
 import os.path
+import sys 
 from time import sleep
 from webbrowser import open_new_tab
 from docopt import docopt
@@ -44,19 +45,56 @@ SECTION_CACHE_QUEST = 'Quest'
 """
 Small utilities written by me start here.
 """
-def get_started(file_path):
-	# Intended to get everything up and running for a first pass. This should run first.
-	# If you want to insert your own filepath, you *must* insert a full filepath starting from ~. 
-	if arg == "":
-		config = '~/Habitica-todo/auth.cfg'
-	else:
-		config = path.expanduser(file_path) 
-	auth = main.load_auth(config)
-	main.load_cache(config)
-	main.update_quest_cache(config)
-	hbt = api.Habitica(auth=auth)
-	return 
+class HabTask(HabiticaObject):
+	"""
+	We're gonna turn the dictionaries the API outputs into a class of variable that can be more easily manipulated.
+	Attribute lists:
+	
+	"""
+	def __init__(self, hab_json):
+	
+	
+	
+	
 
+def get_started(config):
+	"""	
+	Intended to get everything up and running for a first pass. This should run first. 
+	"""
+	from main import load_auth
+	from main import load_cache
+	from main import update_quest_cache
+	from habitica import api 
+	auth = load_auth(config)
+	load_cache(config)
+	update_quest_cache(config)
+	hbt = api.Habitica(auth=auth)
+	return auth, hbt 
+
+def get_hab_tasks(hbt): 
+	"""
+	For my code, I want to be able to grab all habitica tasks and all todoist tasks and compare them
+	by name. Here we're going through all tasks and grabbing the names of each of them in a list.
+	"""
+	#Now, let's get a list of habitica tasks. We want to look at all of them by name
+	#regardless of habit, todo, and weekly. First, we'll pull each kind of task...
+	hab_habits = hbt.user.tasks(type="habits")
+	hab_dailies = hbt.user.tasks(type="dailys")
+	hab_todos = hbt.user.tasks(type="todos")
+	#...and now we'll combine them. 
+	hab_tasks = hab_habits
+	hab_tasks.extend(hab_dailies)
+	hab_tasks.extend(hab_todos)
+	return hab_tasks
+
+def get_hab_names(hbt):
+	#We'll eventually want to check each task in habitica against the todoist ones. Let's get a lisk of task names.
+	habtasks = get_hab_tasks(hbt)
+	hab_names = []
+	for task in habtasks: 
+		hab_names.append(task['text'])
+	return hab_names
+	
 def load_auth(configfile):
     """Get authentication data from the AUTH_CONF file."""
 
@@ -221,24 +259,26 @@ def cli():
 	
     # GET server status
 def server():
-    server = hbt.status()
-    if server['status'] == 'up':
-        print('Habitica server is up')
-    else:
+	auth, hbt = main.get_started('auth.cfg')
+	server = hbt.status()
+	if server['status'] == 'up':
+		print('Habitica server is up')
+	else:
 		print('Habitica server down... or your computer cannot connect')
 
 	# open HABITICA_TASKS_PAGE
 def home():
+	auth, hbt = main.get_started('auth.cfg')
 	home_url = '%s%s' % (auth['url'], HABITICA_TASKS_PAGE)
 	print('Opening %s' % home_url)
 	open_new_tab(home_url)
 
     # GET user
 def status(hbt):
-	hbt = api.Habitica(auth=auth)
+	#hbt = api.Habitica(auth=auth)
 	# gather status info
 	user = hbt.user()
-	party = hbt.groups.party()
+	party = user.get('stats', '')
 	stats = user.get('stats', '')
 	items = user.get('items', '')
 	food_count = sum(items['food'].values())
