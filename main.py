@@ -19,11 +19,8 @@ import netrc
 import os.path
 from time import sleep
 from webbrowser import open_new_tab
-
 from docopt import docopt
-
 from habitica import api
-
 from pprint import pprint
 
 try:
@@ -43,6 +40,22 @@ AUTH_CONF = os.path.expanduser('~') + '/.config/habitica/auth.cfg'
 CACHE_CONF = os.path.expanduser('~') + '/.config/habitica/cache.cfg'
 
 SECTION_CACHE_QUEST = 'Quest'
+
+"""
+Small utilities written by me start here.
+"""
+def get_started(file_path):
+	# Intended to get everything up and running for a first pass. This should run first.
+	# If you want to insert your own filepath, you *must* insert a full filepath starting from ~. 
+	if arg == "":
+		config = '~/Habitica-todo/auth.cfg'
+	else:
+		config = path.expanduser(file_path) 
+	auth = main.load_auth(config)
+	main.load_cache(config)
+	main.update_quest_cache(config)
+	hbt = api.Habitica(auth=auth)
+	return 
 
 def load_auth(configfile):
     """Get authentication data from the AUTH_CONF file."""
@@ -150,7 +163,7 @@ def qualitative_task_score_from_value(value):
     breakpoints = [-20, -10, -1, 1, 5, 10]
     return scores[bisect(breakpoints, value)]
 
-def setup():		
+def cli():		
 	"""
 	Adapting cli...
 	Usage: habitica [--version] [--help]
@@ -186,12 +199,12 @@ def setup():
 	args = docopt(cli.__doc__, version=VERSION)
 
 	# set up logging
-#	def verbose():
-#		logging.basicConfig(level=logging.INFO)
-#		return
-#	def debug():
-#		logging.basicConfig(level=logging.DEBUG)
-#		return
+	def verbose():
+		logging.basicConfig(level=logging.INFO)
+		return
+	def debug():
+		logging.basicConfig(level=logging.DEBUG)
+		return
 
 	logging.debug('Command line args: {%s}' %
 				  ', '.join("'%s': '%s'" % (k, v) for k, v in args.items()))
@@ -221,7 +234,8 @@ def home():
 	open_new_tab(home_url)
 
     # GET user
-def status():
+def status(hbt):
+	hbt = api.Habitica(auth=auth)
 	# gather status info
 	user = hbt.user()
 	party = hbt.groups.party()
