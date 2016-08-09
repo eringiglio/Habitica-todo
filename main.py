@@ -46,46 +46,52 @@ SECTION_CACHE_QUEST = 'Quest'
 Small utilities written by me start here.
 """
 class HabTasks(object):
-	"""
-	We're gonna turn the dictionaries the API outputs into a class of variable that can be more easily manipulated.
-	Attribute lists:
+    """
+    We're gonna turn the dictionaries the API outputs into a class of variable that can be more easily manipulated.
+    Attribute lists:
+    
+    """
+    def __init__(self, 'topic'):
+        # for key in dictionary:
+            # setattr(self, key, dictionary[key])
+        self.down = ''
+        self.tags = ''
+        self.text = topic
+        self.notes = ''
+        self.updatedAt = ''
+        self.userId = ''
+        self.up = ''
+        self.value = ''
+        self.id = ''
+        self.priority = ''
+        self.attribute = ''
+        self.reminders = ''
+        self._id = ''
+        self.type = ''
+        self.challenge = ''
+        self.createdAt = ''
+        self.history = ''
 	
-	"""
-	def __init__(self, hab_json):
-		for key in dictionary:
-			setattr(self, key, dictionary[key])
-		self.down = ''
-		self.tags = ''
-		self.text = ''
-		self.notes = ''
-		self.updatedAt = ''
-		self.userId = ''
-		self.up = ''
-		self.value = ''
-		self.id = ''
-		self.priority = ''
-		self.attribute = ''
-		self.reminders = ''
-		self._id = ''
-		self.type = ''
-		self.challenge = ''
-		self.createdAt = ''
-		self.history = ''
-		for key in dictionary:
-			setattr(self, key, dictionary[key])
-	
+    # def complete(self):
+        # """
+        # Mark task complete.
+        # """
+        # print(self)
 
-	
-	def complete(self):
-		"""
-		Mark task complete.
-		"""
-		print(self)
-
-	def __eq__(self, other): 
-		return self.text == other.content 
-	
-
+    # def __eq__(self, other): 
+        # return self.text == other.content 
+		
+class Dict2Obj(object):
+    """
+    Turns a dictionary into a class
+    """
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, dictionary):
+        """Constructor"""
+        for key in dictionary:
+            setattr(self, key, dictionary[key])		
+			
 def get_started(config):
 	"""	
 	Intended to get everything up and running for a first pass. This should run first. 
@@ -123,6 +129,19 @@ def get_hab_names(hbt):
 	for task in habtasks: 
 		hab_names.append(task['text'])
 	return hab_names
+	
+def write_hab_todo(hbt,task): 
+	"""
+	writes a task, if inserted, to Habitica API as a todo. 
+	To be added: functionality allowing you to specify things like difficulty
+	"""
+	url=https://habitica.com/api/v3/tasks/user
+	
+	hbt.user.tasks(type='todo',
+				   text=task,
+				   _method='post')
+	todos.insert(0, {'completed': False, 'text': task})
+	print('added new todo \'%s\'' % ttext.encode('utf8'))
 	
 def load_auth(configfile):
     """Get authentication data from the AUTH_CONF file."""

@@ -15,6 +15,7 @@ from pytodoist import todoist
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
 from os import path # will let me call files from a specific path
+import main 
 
 #Authorships, etc
 __author__ = "Erin Giglio"
@@ -45,7 +46,7 @@ hab_tasks = []
 hab_names = {}
 
 for task in hab_tasklist:
-	name = HabTasks(task)
+	name = Dict2Obj(task)
 	hab_tasks.append(name)
 	hab_names.update({task,task.text})
 
