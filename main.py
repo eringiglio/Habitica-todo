@@ -45,16 +45,23 @@ SECTION_CACHE_QUEST = 'Quest'
 """
 Small utilities written by me start here.
 """
-class HabTask(HabiticaObject):
+class HabTask(object):
 	"""
 	We're gonna turn the dictionaries the API outputs into a class of variable that can be more easily manipulated.
 	Attribute lists:
 	
 	"""
 	def __init__(self, hab_json):
+		
 	
 	
+	def complete(self):
+	"""
+	Mark task complete.
+	"""
 	
+    def __eq__(self, other): 
+		return self.text == other.content 
 	
 
 def get_started(config):

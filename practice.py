@@ -39,15 +39,21 @@ hab_names =  main.get_task_names(hbt)
 #Todoist tasks are, I think, classes. Let's try an alternate way of getting the tasks I want....
 url = 'https://habitica.com/api/v3/tasks/user/'
 response = requests.get(url,headers=auth)
-hab_tasks = response.json()
+hab_raw = response.json()
+hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_task. Hrm. Weeeelll, if I make a class elsewhere....
+hab_tasks = []
+for task in hab_tasklist:
+	name = Dict2Obj(task)
+	hab_tasks.append(name)
+
 
 #Okay, now I need a list of todoist tasks. How do achieve that. 
 tod_tasks = tod_user.get_tasks()
 for task in tod_tasks: 
 	tod_names.append(task.content)
-
 	
 
+	
 #For all the tasks that DO have an analog in both services
 for task in shared_tasks: 
 	tod_completion = {'text':}
