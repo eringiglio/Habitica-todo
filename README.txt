@@ -28,7 +28,11 @@ USAGE
 
 INSPIRATION
 I'd like to credit several existing apps that I pulled from in order to create this. Notably: 
-
+-existing habitica app, for a lot of initial code and many helpful explanations of how to do things 
+	also for existing API! 
+-Pytodoist 
+-That one Dict2Obj script
+-Dee Dee, for scriptabit which provided a lot of ideas 
 
 
 
