@@ -6,13 +6,13 @@ Fuck it, I need to just get something quick and dirty that will WORK
 
 #Python library imports - this will be functionalities I want to shorten
 import habitica #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
+from habitica import api
 import requests
 from pytodoist import todoist
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
 from os import path # will let me call files from a specific path
 import main 
-from habitica import api
 from bisect import bisect
 import json
 import logging
@@ -36,12 +36,12 @@ hab_names =  main.get_hab_names(hbt)
 url = 'https://habitica.com/api/v3/tasks/user/'
 response = requests.get(url,headers=auth)
 hab_raw = response.json()
-hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_task. Hrm. Weeeelll, if I make a class elsewhere....
-hab_tasks = []
+hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_tasks. Hrm. Weeeelll, if I make a class elsewhere....
 
 #let's turn the hab task list into objects, not dictionaries....
+hab_tasks = []
 
-#One day I'm gonna find out how to do this elsewhere but this is not today, apparently
+#One day I'm gonna find out how to do this on my own but this is not today, apparently
 class Dict2Obj(object):
     """
     Turns a dictionary into a class
@@ -61,14 +61,17 @@ tod_names = []
 tod_tasks = tod_user.get_tasks()
 for task in tod_tasks: 
     tod_names.append(task.content)
+
+#Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
+habtod_match = "False"
 	
-for name in hab_tasks:
-    for task in tod_tasks:
+for task in tod_tasks:
+	for name in hab_tasks:
         if task.content == name.text:
             if task.checked == 0: 
                 pass 
             else: 
                 name.completed == "True"
-        else:
-            write_hab_todo(task.content)
+	else:
+		write_hab_todo(task.content)
 			

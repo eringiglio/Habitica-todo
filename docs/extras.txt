@@ -1,0 +1,49 @@
+Slips of code that didn't work, to be saved:
+
+
+	# If you want to insert your own filepath, you *must* insert a full filepath starting from ~. 
+	# if len(sys.argv) == 1:
+		# config = '~/Habitica-todo/auth.cfg'
+	# else:
+		# config = path.expanduser(file_path) 
+		
+#Now we'll want to check each task in habitica against the todoist ones. Let's get a lisk of task names.
+tod_uniq_tasks = list(set(tod_names) - set(hab_names))
+hab_uniq_tasks = list(set(hab_names) - set(tod_names))
+shared_tasks = list(set(hab_names) - set(hab_uniq_tasks))
+
+class HabTasks(object):
+    """
+    We're gonna turn the dictionaries the API outputs into a class of variable that can be more easily manipulated.
+    Attribute lists:
+    
+    """
+    def __init__(self, 'topic'):
+        # for key in dictionary:
+            # setattr(self, key, dictionary[key])
+        self.down = ''
+        self.tags = ''
+        self.text = topic
+        self.notes = ''
+        self.updatedAt = ''
+        self.userId = ''
+        self.up = ''
+        self.value = ''
+        self.id = ''
+        self.priority = ''
+        self.attribute = ''
+        self.reminders = ''
+        self._id = ''
+        self.type = ''
+        self.challenge = ''
+        self.createdAt = ''
+        self.history = ''
+	
+    # def complete(self):
+        # """
+        # Mark task complete.
+        # """
+        # print(self)
+
+    # def __eq__(self, other): 
+        # return self.text == other.content 
