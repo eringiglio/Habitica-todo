@@ -5,13 +5,14 @@ Fuck it, I need to just get something quick and dirty that will WORK
 """
 
 #Python library imports - this will be functionalities I want to shorten
-import habitica #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
-from habitica import api
-import requests
+from habitica import api #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
 from pytodoist import todoist
+from os import path # will let me call files from a specific path
+import requests
+import scriptabit
+
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
-from os import path # will let me call files from a specific path
 import main 
 from bisect import bisect
 import json
@@ -25,7 +26,7 @@ from pprint import pprint
 
 
 #Here's where I'm putting my login stuff for Todoist.
-tod_user = todoist.login('eringiglio@gmail.com','Liathro1!')
+
 tod_names = []
 
 #Telling the site where the config stuff for Habitica can go and get a list of habitica tasks...
