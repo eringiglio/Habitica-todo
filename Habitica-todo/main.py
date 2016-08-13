@@ -29,7 +29,7 @@ try:
 except:
     import configparser	
 	
-VERSION = 'habitica version 0.0.12'
+VERSION = 'Habitica-todo version 0.0.1'
 TASK_VALUE_BASE = 0.9747  # http://habitica.wikia.com/wiki/Task_Value
 HABITICA_REQUEST_WAIT_TIME = 0.5  # time to pause between concurrent requests
 HABITICA_TASKS_PAGE = '/#/tasks'
@@ -65,7 +65,7 @@ def get_started(config):
 	from main import load_cache
 	from main import update_quest_cache
 	from habitica import api 
-	auth = load_auth(config)
+	auth_hab, auth_tod = load_auth(config)
 	load_cache(config)
 	update_quest_cache(config)
 	hbt = api.Habitica(auth=auth)
@@ -108,7 +108,7 @@ def write_hab_todo(hbt,task):
 def load_auth(configfile):
     """Get authentication data from the AUTH_CONF file."""
 
-    logging.debug('Loading habitica auth data from %s' % configfile)
+    logging.debug('Loading habitica and todoist auth data from %s' % configfile)
 
     try:
         cf = open(configfile)
@@ -121,10 +121,10 @@ def load_auth(configfile):
 
     cf.close()
 
-    # Get data from config
-    rv = {}
+    # Get habitica data from config
+    rv_hab = {}
     try:
-        rv = {'url': config.get('Habitica', 'url'),
+        rv_hab = {'url': config.get('Habitica', 'url'),
               'x-api-user': config.get('Habitica', 'login'),
               'x-api-key': config.get('Habitica', 'password')}
 
@@ -137,8 +137,21 @@ def load_auth(configfile):
                       % (configfile, e.message))
         exit(1)
 
+	#and todoist data...
+	rv_tod = {}
+    try:
+        rv_tod = {'x-api-key': config.get('Todoist', 'api-token')}
+    except configparser.NoSectionError:
+        logging.error("No 'Todoist' section in '%s'" % configfile)
+        exit(1)
+    except configparser.NoOptionError as e:
+        logging.error("Missing option in auth file '%s': %s"
+                      % (configfile, e.message))
+        exit(1)
+
+
     # Return auth data as a dictionnary
-    return rv
+    return rv_hab, rv_tod
 
 
 def load_cache(configfile):
@@ -258,7 +271,7 @@ def cli():
 				  ', '.join("'%s': '%s'" % (k, v) for k, v in args.items()))
 
 	# Set up auth
-	auth = load_auth(AUTH_CONF)
+	auth_hab, auth_tod = load_auth(AUTH_CONF)
 
 	# Prepare cache
 	cache = load_cache(CACHE_CONF)
