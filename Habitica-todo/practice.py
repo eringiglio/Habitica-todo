@@ -17,7 +17,7 @@ from urllib2 import urlopen
 from os import path # will let me call files from a specific path
 import main 
 
-#Authorships, etc
+#Authorships, etc. Note I need to work out my thank you section...
 __author__ = "Erin Giglio"
 __copyright__ = "Copyright 2016"
 __credits__ = ["Erin Giglio"]
