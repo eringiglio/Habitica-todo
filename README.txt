@@ -32,7 +32,7 @@ I'd like to credit several existing apps that I pulled from in order to create t
 	also for existing API! 
 -Pytodoist 
 -That one Dict2Obj script
--Dee Dee, for scriptabit which provided a lot of ideas 
+-Dee Dee whose scriptabit which provided a lot of ideas 
 
 
 

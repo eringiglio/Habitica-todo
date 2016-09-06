@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Here's all the gear needed to load up habitica's API...
+May be nonfunctional with current code contained in main. 
 """
-import habitica 
-from habitica import core
+import main 
 from os import path 
 import requests
 

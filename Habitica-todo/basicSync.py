@@ -30,7 +30,7 @@ tod_user = main.tod_login('auth.cfg')
 tod_names = []
 
 #Telling the site where the config stuff for Habitica can go and get a list of habitica tasks...
-auth_hab, auth_tod, hbt = main.get_started('auth.cfg')  
+auth, hbt = main.get_started('auth.cfg')  
 hab_names =  main.get_hab_names(hbt)
 
 #Todoist tasks are, I think, classes. Let's try an alternate way of getting the tasks I want....
