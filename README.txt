@@ -7,7 +7,10 @@ project on Todoist.
 
 INSTALLATION
 
+You'll want to install two existing API Python wrappers that this utility depends on...
 
+pip install habitica
+pip install pytodoist
 
 TASK DIFFICULTY
 I felt that it would be good if task difficulty translated between tasks created on Todoist and 
@@ -25,7 +28,11 @@ USAGE
 
 INSPIRATION
 I'd like to credit several existing apps that I pulled from in order to create this. Notably: 
-
+-existing habitica app, for a lot of initial code and many helpful explanations of how to do things 
+	also for existing API! 
+-Pytodoist 
+-That one Dict2Obj script
+-Dee Dee whose scriptabit which provided a lot of ideas 
 
 
 
