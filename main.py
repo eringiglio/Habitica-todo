@@ -45,6 +45,12 @@ SECTION_CACHE_QUEST = 'Quest'
 """
 Small utilities written by me start here.
 """
+
+class Item(object):
+        def __init__(self, dictionary):
+            for key in dictionary:
+                setattr(self, key, dictionary[key])		
+
 		
 class Dict2Obj(object):
     """
@@ -167,7 +173,7 @@ def tod_login(configfile):
                       % (configfile, e.message))
         exit(1)
 
-    tod_user = todoist.login_with_api_token(rv)
+#    tod_user = todoist.login_with_api_token(rv)
     # Return auth data
     return tod_user
 
