@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
 """
-Fuck it, I need to just get something quick and dirty that will WORK 
+Fuck it, I need to just get something quick and dirty that will WORK. More features to come later.
 """
 
 #Python library imports - this will be functionalities I want to shorten
 from habitica import api #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
-from pytodoist import todoist
+#from pytodoist import todoist
 from os import path # will let me call files from a specific path
 import requests
 import scriptabit
-
+import pickle
+ 
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
 import main 
@@ -70,7 +71,14 @@ for task in hab_tasklist:
 tod_tasks = tod_user.get_tasks()
 
 #Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
-matchDict = {}
+pkl_file = open('habtod_matchDict.pkl','rb')
+matchDict = pickle.load(pkl_file)
+pkl_file.close()
+
+#We'll want to just... pull all the unmatched tasks out of our lists of tasks. Yeah? 
+hab_dup = matchDict.keys()
+hab_uniq = set(hab_tasks) - set(hab_dup)
+tod_dup = 
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for task in tod_tasks[:]:
@@ -91,11 +99,11 @@ for name in hab_tasks:
 
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
-for item in matchDict: #make sure neither of these are used elsewhere in code 
+for item in matchDict: #make sure neither of these are used elsewhere in code
     if task.checked == 0 and name.completed == "False": 
         pass
     elif task.checked == 1 and name.completed == "True":
-        pass
+        matchDict.pop(item, None)
     else: 
         name.completed = "True"
         task.checked = 1
