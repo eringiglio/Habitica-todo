@@ -5,13 +5,17 @@ Fuck it, I need to just get something quick and dirty that will WORK. More featu
 """
 
 #Python library imports - this will be functionalities I want to shorten
+from todo_task import TodTask
 from habitica import api #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
 #from pytodoist import todoist
 from os import path # will let me call files from a specific path
 import requests
 import scriptabit
 import pickle
- 
+import todoist
+from hab_task import HabTask
+from todo_task import TodTask
+
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
 import main 
@@ -29,6 +33,9 @@ from pprint import pprint
 #Here's where I'm putting my login stuff for Todoist.
 tod_user = main.tod_login('auth.cfg')
 tod_names = []
+tod_projects = tod_user.projects.all()
+tod_inboxID = tod_projects[0].data['id']
+
 
 #Telling the site where the config stuff for Habitica can go and get a list of habitica tasks...
 auth, hbt = main.get_started('auth.cfg')  
@@ -44,19 +51,6 @@ hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... thi
 tod_tasks = []
 hab_tasks = [] 
 
-#let's turn the hab task list into objects, not dictionaries....
-
-#One day I'm gonna find out how to do this on my own but this is not today, apparently
-class Dict2Obj(object):
-    """
-    Turns a dictionary into a class
-    """
-    #----------------------------------------------------------------------
-    def __init__(self, dictionary):
-        """Constructor"""
-        for key in dictionary:
-            setattr(self, key, dictionary[key])
-
 #No habits right now, I'm afraid, in hab_tasks--Todoist gets upset. So we're going to make a list of dailies and todos instead...
 for task in hab_tasklist: 
     name = Dict2Obj(task)
@@ -68,7 +62,10 @@ for task in hab_tasklist:
         hab_tasks.append(name)
 
 #Okay, now I need a list of todoist tasks. How do achieve that. 
-tod_tasks = tod_user.get_tasks()
+tod_tasks = []
+tod_tasklist = tod_user.items.all()
+for i in range(1, len(tod_tasklist)):
+    tod_tasks.append(TodTask(tod_tasklist[i].data))
 
 #Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
 pkl_file = open('habtod_matchDict.pkl','rb')
@@ -78,24 +75,25 @@ pkl_file.close()
 #We'll want to just... pull all the unmatched tasks out of our lists of tasks. Yeah? 
 hab_dup = matchDict.keys()
 hab_uniq = set(hab_tasks) - set(hab_dup)
-tod_dup = 
+tod_dup = matchDict.values()
+tod_uniq = set(tod_tasks) - set(tod_dup)
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
-for task in tod_tasks[:]:
-    for name in hab_tasks[:]:
-        if task.content == name.text:
+for task in tod_uniq[:]:
+    for name in hab_uniq[:]:
+        if task.name == name.text:
             matchDict[name] = task
-            tod_tasks.remove(task)
-            hab_tasks.remove(name)
+            tod_uniq.remove(task)
+            hab_uniq.remove(name)
             
 #Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
-for task in tod_tasks:
+for task in tod_uniq:
     main.write_hab_todo(hbt,task.content)
 
-#I'm just assuming that all these tasks can be dumped in the inbox.
-inbox = tod_user.get_project('Inbox')
-for name in hab_tasks:
-    inbox.add_task(name.text)
+#I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login.
+for name in hab_uniq:
+    tod_user.items.add(name.text,tod_inboxID)
+
 
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
