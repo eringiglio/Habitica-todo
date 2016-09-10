@@ -1,5 +1,11 @@
 Slips of code that didn't work, to be saved:
 
+Logging in via pytodoist...
+
+
+
+
+
 
 	# If you want to insert your own filepath, you *must* insert a full filepath starting from ~. 
 	# if len(sys.argv) == 1:

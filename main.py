@@ -5,13 +5,11 @@ Phil Adams http://philadams.net
 habitica: commandline interface for http://habitica.com
 http://github.com/philadams/habitica
 
-
 Changes I've made essentially revolve around tweaking a command-line utility running in python
 to be a module holding a series of smaller python utilities that can be called within a larger program. 
 
-
 """
-from pytodoist import todoist 	
+import todoist 
 from bisect import bisect
 import json
 import logging
@@ -23,6 +21,8 @@ from webbrowser import open_new_tab
 from docopt import docopt
 from habitica import api
 from pprint import pprint
+from hab_task import HabTask
+from todo_task import TodTask
 
 try:
     import ConfigParser as configparser
@@ -46,23 +46,37 @@ SECTION_CACHE_QUEST = 'Quest'
 Small utilities written by me start here.
 """
 
-class Item(object):
-        def __init__(self, dictionary):
-            for key in dictionary:
-                setattr(self, key, dictionary[key])		
+def tod_login(configfile):
+    logging.debug('Loading todoist auth data from %s' % configfile)
 
-		
-class Dict2Obj(object):
-    """
-    Turns a dictionary into a class
-    """
- 
-    #----------------------------------------------------------------------
-    def __init__(self, dictionary):
-        """Constructor"""
-        for key in dictionary:
-            setattr(self, key, dictionary[key])		
-			
+    try:
+        cf = open(configfile)
+    except IOError:
+        logging.error("Unable to find '%s'." % configfile)
+        exit(1)
+
+    config = configparser.SafeConfigParser()
+    config.readfp(cf)
+
+    cf.close()
+
+    # Get data from config
+    try:
+        rv = config.get('Todoist', 'api-token')
+
+    except configparser.NoSectionError:
+        logging.error("No 'Todoist' section in '%s'" % configfile)
+        exit(1)
+
+    except configparser.NoOptionError as e:
+        logging.error("Missing option in auth file '%s': %s" % (configfile, e.message))
+        exit(1)
+    
+    tod_user = todoist.TodoistAPI(rv)
+    #tod_user = todoist.login_with_api_token(rv)
+    # Return auth data
+    return tod_user
+
 def get_started(config):
 	"""	
 	Intended to get everything up and running for a first pass. This should run first. 
@@ -146,37 +160,6 @@ def load_auth(configfile):
     # Return auth data as a dictionnary
     return rv
 
-def tod_login(configfile):
-    logging.debug('Loading todoist auth data from %s' % configfile)
-
-    try:
-        cf = open(configfile)
-    except IOError:
-        logging.error("Unable to find '%s'." % configfile)
-        exit(1)
-
-    config = configparser.SafeConfigParser()
-    config.readfp(cf)
-
-    cf.close()
-
-    # Get data from config
-    try:
-        rv = config.get('Todoist', 'api-token')
-
-    except configparser.NoSectionError:
-        logging.error("No 'Todoist' section in '%s'" % configfile)
-        exit(1)
-
-    except configparser.NoOptionError as e:
-        logging.error("Missing option in auth file '%s': %s"
-                      % (configfile, e.message))
-        exit(1)
-
-#    tod_user = todoist.login_with_api_token(rv)
-    # Return auth data
-    return tod_user
-
 
 def load_cache(configfile):
     logging.debug('Loading cached config data (%s)...' % configfile)
@@ -207,7 +190,6 @@ def update_quest_cache(configfile, **kwargs):
     cache.read(configfile)
 
     return cache
-
 
 def get_task_ids(tids):
     """
