@@ -12,8 +12,8 @@ from builtins import *
 from datetime import datetime
 from tzlocal import get_localzone
 
-#from .dates import parse_date_utc
-#from .task import CharacterAttribute, ChecklistItem, Difficulty, Task
+from dates import parse_date_utc
+from task import CharacterAttribute, ChecklistItem, Difficulty, Task
 
 class HabTask(object):
     def __init__(self, task_dict=None):
@@ -31,9 +31,6 @@ class HabTask(object):
             raise TypeError(type(task_dict))
 
         self.__task_dict = task_dict
-
-        # ensure that some required values are defined
-        task_dict['type'] = 'todo'
 
         if 'priority' not in task_dict:
             task_dict['priority'] = Difficulty.default.value
@@ -72,6 +69,16 @@ class HabTask(object):
     def name(self, name):
         """ Task name """
         self.__task_dict['text'] = name
+
+    @property
+    def category(self):
+        """ Task type """
+        return self.__task_dict['type']
+
+    @category.setter
+    def category(self, name):
+        """ Task name """
+        self.__task_dict['type'] = name        
 
     @property
     def description(self):

@@ -120,11 +120,14 @@ def write_hab_todo(hbt,task):
     writes a task, if inserted, to Habitica API as a todo. 
     To be added: functionality allowing you to specify things like difficulty
     """
-    url='https://habitica.com/api/v3/tasks/user'
     hbt.user.tasks(type='todo', text=task, _method='post')
-#    todo.insert(0, {'completed': False, 'text': task})
-#    print('added new todo \'%s\'' % ttext.encode('utf8'))
 	
+def complete_hab_todo(hbt, task):
+    """
+    pushes a completed task to the api.
+    """
+    hbt.user.tasks(_id=task.id, _direction='up', _method='post')
+
 def load_auth(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
