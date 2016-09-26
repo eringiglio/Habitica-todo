@@ -63,8 +63,10 @@ for i in range(0, len(tod_tasklist)):
     tod_tasks.append(TodTask(tod_tasklist[i].data))
 
 #Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
+    #Ugh, I can't get bidict to work with these object classes, so we're going to basically pull a list of two paired dictionaries instead: a dict and its mirror image.
+    #So the contents of this file should now be not a dictionary, but a list of two paired dictionaries which should be inverses of each other. 
 pkl_file = open('habtod_matchDict.pkl','rb')
-matchDict = pickle.load(pkl_file)
+matchDict_list = pickle.load(pkl_file)
 pkl_file.close()
 
 #We'll want to just... pull all the unmatched tasks out of our lists of tasks. Yeah? 
@@ -82,8 +84,13 @@ for tod_task in tod_uniq[:]:
     for hab_task in hab_uniq[:]:
         if tod_task.name == hab_task.name:
             matchDict[hab_task] = tod_task
-            tod_uniq.remove(tod_task)
-            hab_uniq.remove(hab_task)
+            dictMatch[tod_task] = hab_task
+            nameDict[hab_task.name] = tod_task.name
+
+hab_dup = matchDict.keys()
+hab_uniq = list(set(hab_tasks) - set(hab_dup))
+tod_dup = matchDict.values()
+tod_uniq = list(set(tod_tasks) - set(tod_dup))
 
 #Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
 for i in tod_uniq:
@@ -102,7 +109,8 @@ for t in matchDict: #make sure neither of these are used elsewhere in code
         matchDict.pop(item, None)
     else: 
         main.complete_hab_todo(hbt,t)
-        tod = tod_items.get_by_id(matchDict[t].id)
+		tid = matchDict[t].id
+        tod = tod_items.get_by_id(tid)
         tod.complete()
         
 #Wrapping it all up: saving matchDict, committing changes to todoist
