@@ -89,17 +89,18 @@ hab_dup = matchDict.keys()
 hab_uniq = list(set(hab_tasks) - set(hab_dup))
 tod_dup = dictMatch.keys()
 tod_uniq = list(set(tod_tasks) - set(tod_dup))
+nameDict = {}
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
-for tod_task in tod_uniq[:]:
-    for hab_task in hab_uniq[:]:
+for tod_task in tod_uniq:
+    for hab_task in hab_uniq:
         if tod_task.name == hab_task.name:
             if hab_task in matchDict and tod_task in dictMatch:
-                matchDict[hab_task].append(tod_task)
-                dictMatch[tod_task].append(hab_task)
+                matchDict[hab_task] = tod_task
+                dictMatch[tod_task] = hab_task
             else:
-                matchDict[hab_task] = [tod_task]
-                dictMatch[tod_task] = [hab_task]
+                matchDict[hab_task] = tod_task
+                dictMatch[tod_task] = hab_task
                 nameDict[hab_task.name] = tod_task.name
 
 hab_dup = matchDict.keys()
@@ -114,17 +115,18 @@ for i in tod_uniq:
 #I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login
 for task in hab_uniq:
     tod_user.items.add(task.name,tod_inboxID)
-tod_user.commit()
 
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
     if matchDict[t].complete == 0 and dictMatch[matchDict[t]].completed == "False": 
         pass
-    elif matchDict[t].complete == 1 and t.completed == "True":
-        matchDict.pop(item, None)
-    else: 
+    elif matchDict[t].complete == 1 and dictMatch[matchDict[t]].completed == "True":
+        matchDict.pop(t, None)
+        dictMatch.pop(matchDict[t], None)
+    elif matchDict[t].complete == 1 and dictMatch[matchDict[t]].completed == "False": 
         main.complete_hab_todo(hbt,t)
+    else:
         tid = matchDict[t].id
         tod = tod_items.get_by_id(tid)
         tod.complete()
