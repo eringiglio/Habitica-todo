@@ -16,6 +16,7 @@ from enum import Enum
 import requests
 
 
+
 class HabiticaTaskTypes(Enum):
     """ Habitica task types """
     habits = 'habits'
