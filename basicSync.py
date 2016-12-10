@@ -62,13 +62,21 @@ tod_tasklist = tod_items.all()
 for i in range(0, len(tod_tasklist)):
     tod_tasks.append(TodTask(tod_tasklist[i].data))
 
-#Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
-    #Ugh, I can't get bidict to work with these object classes, so we're going to basically pull a list of two paired dictionaries instead: a dict and its mirror image.
-    #So the contents of this file should now be not a dictionary, but a list of two paired dictionaries which should be inverses of each other. 
+"""
+Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
+We're going to basically pull a list of two paired dictionaries instead: a dict and its mirror image.
+So the contents of this file should now be not a dictionary, but a list of two paired dictionaries which should be inverses of each other. 
+"""
+
 pkl_file = open('habtod_matchDict.pkl','rb')
 dict_list = pickle.load(pkl_file)
-matchDict = dict_list[0]
-dictMatch = dict_list[1]
+try: 
+    matchDict = dict_list[0]
+    dictMatch = dict_list[1]
+except:
+    matchDict = {}
+    dictMatch = {}
+
 pkl_file.close()
 
 
