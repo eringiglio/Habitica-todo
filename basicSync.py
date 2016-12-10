@@ -66,8 +66,11 @@ for i in range(0, len(tod_tasklist)):
     #Ugh, I can't get bidict to work with these object classes, so we're going to basically pull a list of two paired dictionaries instead: a dict and its mirror image.
     #So the contents of this file should now be not a dictionary, but a list of two paired dictionaries which should be inverses of each other. 
 pkl_file = open('habtod_matchDict.pkl','rb')
-matchDict_list = pickle.load(pkl_file)
+dict_list = pickle.load(pkl_file)
+matchDict = dict_list[0]
+dictMatch = dict_list[1]
 pkl_file.close()
+
 
 #We'll want to just... pull all the unmatched tasks out of our lists of tasks. Yeah? 
 hab_dup = []
@@ -76,20 +79,24 @@ tod_dup = []
 tod_uniq = []
 hab_dup = matchDict.keys()
 hab_uniq = list(set(hab_tasks) - set(hab_dup))
-tod_dup = matchDict.values()
+tod_dup = dictMatch.keys()
 tod_uniq = list(set(tod_tasks) - set(tod_dup))
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for tod_task in tod_uniq[:]:
     for hab_task in hab_uniq[:]:
         if tod_task.name == hab_task.name:
-            matchDict[hab_task] = tod_task
-            dictMatch[tod_task] = hab_task
-            nameDict[hab_task.name] = tod_task.name
+            if hab_task in matchDict and tod_task in dictMatch:
+                matchDict[hab_task].append(tod_task)
+                dictMatch[tod_task].append(hab_task)
+            else:
+                matchDict[hab_task] = [tod_task]
+                dictMatch[tod_task] = [hab_task]
+                nameDict[hab_task.name] = tod_task.name
 
 hab_dup = matchDict.keys()
 hab_uniq = list(set(hab_tasks) - set(hab_dup))
-tod_dup = matchDict.values()
+tod_dup = dictMatch.keys()
 tod_uniq = list(set(tod_tasks) - set(tod_dup))
 
 #Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
@@ -103,18 +110,19 @@ for task in hab_uniq:
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
-    if matchDict[t].complete == 0 and t.completed == "False": 
+    if matchDict[t].complete == 0 and dictMatch[matchDict[t]].completed == "False": 
         pass
     elif matchDict[t].complete == 1 and t.completed == "True":
         matchDict.pop(item, None)
     else: 
         main.complete_hab_todo(hbt,t)
-		tid = matchDict[t].id
+        tid = matchDict[t].id
         tod = tod_items.get_by_id(tid)
         tod.complete()
         
 #Wrapping it all up: saving matchDict, committing changes to todoist
+dict_list = [matchDict, dictMatch]
 pkl_out = open('habtod_matchDict.pkl','w')
-pickle.dump(matchDict, pkl_out)
+pickle.dump(dict_list, pkl_out)
 pkl_out.close()
 tod_user.commit()
