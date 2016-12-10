@@ -114,6 +114,7 @@ for i in tod_uniq:
 #I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login
 for task in hab_uniq:
     tod_user.items.add(task.name,tod_inboxID)
+tod_user.commit()
 
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
