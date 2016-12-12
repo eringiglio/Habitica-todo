@@ -110,27 +110,44 @@ tod_uniq = list(set(tod_tasks) - set(tod_dup))
 
 #Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
 for i in tod_uniq:
+    #if i.date_string == "":
+    #else:
     main.write_hab_todo(hbt,i.name)
 
 #I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login
 for task in hab_uniq:
-    tod_user.items.add(task.name,tod_inboxID)
+    if task.category== "daily":
+        tod_user.items.add(task.name,date_string=task.dailies_due)
+    else:
+        tod_user.items.add(task.name,tod_inboxID)
 
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
-    if matchDict[t].complete == 0 and dictMatch[matchDict[t]].completed == "False": 
-        pass
-    elif matchDict[t].complete == 1 and dictMatch[matchDict[t]].completed == "True":
-        matchDict.pop(t, None)
-        dictMatch.pop(matchDict[t], None)
-    elif matchDict[t].complete == 1 and dictMatch[matchDict[t]].completed == "False": 
-        main.complete_hab_todo(hbt,t)
+    if matchDict[t].complete == 0: 
+        if dictMatch[matchDict[t]].completed == False: 
+            pass
+        elif dictMatch[matchDict[t]].completed == True: 
+            tid = matchDict[t].id
+            tod = tod_items.get_by_id(tid)
+            tod.complete()
+        else:
+            print("Hey, something's fishy here. Check out the Habitica task?")
+            print(dictMatch[matchDict[t]].name)
+    elif matchDict[t].complete == 1:
+        if dictMatch[matchDict[t]].completed == True:
+#            matchDict.pop(t, None)
+#            dictMatch.pop(matchDict[t], None)
+            pass
+        elif dictMatch[matchDict[t]].completed == False: 
+            main.complete_hab_todo(hbt,t)
+        else:
+            print("Hey, something's fishy here. Check out the Habitica task?")            
+            print(dictMatch[matchDict[t]].name)
     else:
-        tid = matchDict[t].id
-        tod = tod_items.get_by_id(tid)
-        tod.complete()
-        
+        print("uh, something's weird here. Check out the Todoist task?")
+        print(matchDict[t].name)
+
 #Wrapping it all up: saving matchDict, committing changes to todoist
 dict_list = [matchDict, dictMatch]
 pkl_out = open('habtod_matchDict.pkl','w')
