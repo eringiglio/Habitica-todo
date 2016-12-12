@@ -19,8 +19,7 @@ class HabTask(object):
     def __init__(self, task_dict=None):
         """ Initialise the task.
 
-        Args:
-            task_dict (dict): the Todoist task dictionary, as released by task_all.
+        Args: task_dict (dict): the Todoist task dictionary, as released by task_all.
         """
         super().__init__()
 
@@ -49,12 +48,43 @@ class HabTask(object):
             del task_dict['checklist']
         else:
             self.existing_checklist_items = []
-        
+
     @property
     def task_dict(self):
         """ Gets the internal task dictionary. """
         return self.__task_dict
 
+    @property
+    #What days of the week does this daily repeat?
+    def dailies_due(self):
+        if self.__task_dict['type'] == 'daily':
+            days = ['ev ']
+            if self.__task_dict['repeat']["m"] == True:
+                    days.append("monday")
+            if self.__task_dict['repeat']["t"] == True:
+                    days.append("tuesday")
+            if self.__task_dict['repeat']["w"] == True:
+                    days.append("wednesday")
+            if self.__task_dict['repeat']["th"] == True:
+                    days.append("thursday")
+            if self.__task_dict['repeat']["f"] == True:
+                    days.append("friday")
+            if self.__task_dict['repeat']["s"] == True:
+                    days.append("saturday")
+            if self.__task_dict['repeat']["su"] == True:
+                    days.append("sunday")
+            days.append(', ')
+            days.pop()
+            due_dates = ''.join(days)
+            return due_dates
+        else:
+            return ''
+
+    @property
+    #is task complete? 0 for no, 1 for yes
+    def complete(self):
+        return self.__task_dict['checked']
+    
     @property
     def id(self):
         """ Task id """
@@ -69,7 +99,7 @@ class HabTask(object):
     def name(self, name):
         """ Task name """
         self.__task_dict['text'] = name
-
+        
     @property
     def category(self):
         """ Task type """

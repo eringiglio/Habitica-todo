@@ -71,6 +71,10 @@ class TodTask(object):
     def due_date(self):
         return self.__task_dict['due_date_utc']
     
+    @property
+    #date in string form
+    def date_string(self):
+        return self.__task_dict['date_string']
     
 
     
