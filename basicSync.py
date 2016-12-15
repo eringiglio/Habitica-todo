@@ -13,10 +13,10 @@ import pickle
 import todoist
 from hab_task import HabTask
 from todo_task import TodTask
+import main
 
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
-import main 
 from bisect import bisect
 import json
 import logging
@@ -87,37 +87,51 @@ tod_dup = []
 tod_uniq = []
 hab_dup = matchDict.keys()
 hab_uniq = list(set(hab_tasks) - set(hab_dup))
-tod_dup = dictMatch.keys()
+tod_dup = matchDict.values()
 tod_uniq = list(set(tod_tasks) - set(tod_dup))
-nameDict = {}
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for tod_task in tod_uniq:
     for hab_task in hab_uniq:
         if tod_task.name == hab_task.name:
-            if hab_task in matchDict and tod_task in dictMatch:
-                matchDict[hab_task] = tod_task
-                dictMatch[tod_task] = hab_task
+            if hab_task in matchDict.keys():
+                if tod_task in matchDict:
+                    print("well done")
+                else:
+                    matchDict[hab_task] = tod_task
             else:
                 matchDict[hab_task] = tod_task
-                dictMatch[tod_task] = hab_task
-                nameDict[hab_task.name] = tod_task.name
+
+#Ugh. I need to make sure I don't catch complete tasks in here. ugh. 
+for task in tod_uniq:
+    if task.complete == 1:
+        tod_uniq.remove(task)
+
+for task in hab_uniq:
+    if task.completed == "True":
+        hab_uniq.remove(task)
 
 hab_dup = matchDict.keys()
 hab_uniq = list(set(hab_tasks) - set(hab_dup))
-tod_dup = dictMatch.keys()
+tod_dup = matchDict.values()
 tod_uniq = list(set(tod_tasks) - set(tod_dup))
+    
 
-#Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
+#Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copietos of the individual tasks...
 for i in tod_uniq:
-    #if i.date_string == "":
-    #else:
-    main.write_hab_todo(hbt,i.name)
+    hab = main.make_hab_from_tod(i)
+    main.write_hab_task(hbt,hab)
+'''    if ev in i.date_string:
+        hab = main.make_daily_from_tod(i)
+        main.write_hab_daily(hbt, hab)
+    else:
+        main.write_hab_todo(hbt,task)'''
+    
 
 #I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login
 for task in hab_uniq:
     if task.category== "daily":
-        tod_user.items.add(task.name,date_string=task.dailies_due)
+        tod_user.items.add(task.name,tod_inboxID,date_string=task.dailies_due)
     else:
         tod_user.items.add(task.name,tod_inboxID)
 
@@ -125,25 +139,25 @@ for task in hab_uniq:
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
     if matchDict[t].complete == 0: 
-        if dictMatch[matchDict[t]].completed == False: 
+        if t.completed == False: 
             pass
-        elif dictMatch[matchDict[t]].completed == True: 
+        elif t.completed == True: 
             tid = matchDict[t].id
             tod = tod_items.get_by_id(tid)
             tod.complete()
         else:
             print("Hey, something's fishy here. Check out the Habitica task?")
-            print(dictMatch[matchDict[t]].name)
+            print(t.name)
     elif matchDict[t].complete == 1:
-        if dictMatch[matchDict[t]].completed == True:
+        if t.completed == True:
 #            matchDict.pop(t, None)
 #            dictMatch.pop(matchDict[t], None)
             pass
-        elif dictMatch[matchDict[t]].completed == False: 
+        elif t.completed == False: 
             main.complete_hab_todo(hbt,t)
         else:
             print("Hey, something's fishy here. Check out the Habitica task?")            
-            print(dictMatch[matchDict[t]].name)
+            print(t.name)
     else:
         print("uh, something's weird here. Check out the Todoist task?")
         print(matchDict[t].name)
