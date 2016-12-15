@@ -109,8 +109,34 @@ def make_hab_from_tod(tod_task):
     elif tod_task.priority == 4:
         new_hab['priority'] = .1
     return new_hab
-    
 
+def get_uniqs(matchDict,tod_tasks,hab_tasks):
+    hab_dup = []
+    hab_uniq = []
+    tod_dup = []
+    tod_uniq = []
+    for i in matchDict:
+        hab_dup.append(matchDict[i]['hab'])
+        tod_dup.append(matchDict[i]['tod'])
+    
+    for task in tod_uniq:
+        if task.complete == 1:
+            tod_uniq.remove(task)
+
+    for task in hab_uniq:
+        if task.completed == "True":
+            hab_uniq.remove(task)
+    
+    try:
+        hab_uniq = list(set(hab_tasks) - set(hab_dup))
+    except:
+        hab_uniq = []
+    try:
+        tod_uniq = list(set(tod_tasks) - set(tod_dup))
+    except:
+        tod_uniq = []
+    
+    return tod_uniq, hab_uniq
 
 def write_hab_task(hbt,task): 
     """
@@ -123,7 +149,17 @@ def write_hab_task(hbt,task):
     url = 'https://habitica.com/api/v3/tasks/user/'
     hab = json.dumps(task)
     requests.post(headers=auth, url=url, data=hab)
-        
+
+def add_hab_id(tid,hab): 
+    import requests
+    import json
+    auth, hbt = get_started('auth.cfg')
+    url = 'https://habitica.com/api/v3/tasks/'
+    hab.task_dict['notes'] = str(tid)
+    url += hab.task_dict['id']
+    data = json.dumps(hab.task_dict)
+    r = requests.put(headers=auth, url=url, data=data)
+    
 def load_auth(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
