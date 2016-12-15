@@ -82,13 +82,48 @@ def get_started(config):
     hbt = api.Habitica(auth=auth)
     return auth, hbt 
 
-def write_hab_todo(hbt,task): 
+def make_daily_from_tod(tod_task):
+    new_hab = {'type':'daily'}
+    new_hab['text'] = tod_task.name
+    new_hab
+    if tod_task.priority == 1:
+        new_hab['priority'] = 2
+    elif tod_task.priority == 2:
+        new_hab['priority'] = 1.5
+    elif tod_task.priority == 3:
+        new_hab['priority'] = 1
+    elif tod_task.priority == 4:
+        new_hab['priority'] = .1
+    return new_hab
+
+def make_hab_from_tod(tod_task):
+    new_hab = {'type':'todo'}
+    new_hab['text'] = tod_task.name
+    new_hab['date'] = tod_task.due_date
+    if tod_task.priority == 1:
+        new_hab['priority'] = 2
+    elif tod_task.priority == 2:
+        new_hab['priority'] = 1.5
+    elif tod_task.priority == 3:
+        new_hab['priority'] = 1
+    elif tod_task.priority == 4:
+        new_hab['priority'] = .1
+    return new_hab
+    
+
+
+def write_hab_task(hbt,task): 
     """
     writes a task, if inserted, to Habitica API as a todo. 
     To be added: functionality allowing you to specify things like difficulty
     """
-    hbt.user.tasks(type='todo', text=task, _method='post')
-
+    import requests
+    import json
+    auth, hbt = get_started('auth.cfg')
+    url = 'https://habitica.com/api/v3/tasks/user/'
+    hab = json.dumps(task)
+    requests.post(headers=auth, url=url, data=hab)
+        
 def load_auth(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
@@ -130,3 +165,23 @@ def complete_hab_todo(hbt, task):
     """
     hbt.user.tasks(_id=task.id, _direction='up', _method='post')
     
+def check_matchDict(matchDict):
+    """Troubleshooting"""
+    for t in matchDict:
+        if matchDict[t].complete == 0:
+            if t.completed == False:
+                print("both undone")
+            elif t.completed == True:
+                print("hab done, tod undone")
+            else: 
+                print("something is wroooong check hab")
+        elif matchDict[t].complete == 1:
+            if t.completed == False:
+                print("hab undone, tod done")
+                print(t.name)
+            elif t.completed == True:
+                print("both done")
+            else:
+                print("something is weird check hab")
+        else:
+            print("something is weird check tod")
