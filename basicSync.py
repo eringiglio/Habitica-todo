@@ -14,6 +14,7 @@ import todoist
 from hab_task import HabTask
 from todo_task import TodTask
 import main
+import random
 
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
@@ -42,7 +43,6 @@ hab_raw = response.json()
 hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_tasks. Hrm. Weeeelll, if I make a class elsewhere....
 
 #keeping records of all our tasks
-tod_tasks = []
 hab_tasks = [] 
 
 #No habits right now, I'm afraid, in hab_tasks--Todoist gets upset. So we're going to make a list of dailies and todos instead...
@@ -64,60 +64,34 @@ for i in range(0, len(tod_tasklist)):
 
 """
 Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
-We're going to basically pull a list of two paired dictionaries instead: a dict and its mirror image.
-So the contents of this file should now be not a dictionary, but a list of two paired dictionaries which should be inverses of each other. 
 """
 
 pkl_file = open('habtod_matchDict.pkl','rb')
-dict_list = pickle.load(pkl_file)
 try: 
-    matchDict = dict_list[0]
-    dictMatch = dict_list[1]
+    matchDict = pickle.load(pkl_file)
 except:
     matchDict = {}
-    dictMatch = {}
 
 pkl_file.close()
 
+#Right. That needs to happen. Use the hab and tod tasks to update our dictionaries... 
 
 #We'll want to just... pull all the unmatched tasks out of our lists of tasks. Yeah? 
-hab_dup = []
-hab_uniq = []
-tod_dup = []
-tod_uniq = []
-hab_dup = matchDict.keys()
-hab_uniq = list(set(hab_tasks) - set(hab_dup))
-tod_dup = matchDict.values()
-tod_uniq = list(set(tod_tasks) - set(tod_dup))
+tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for tod_task in tod_uniq:
     for hab_task in hab_uniq:
         if tod_task.name == hab_task.name:
-            if hab_task in matchDict.keys():
-                if tod_task in matchDict:
-                    print("well done")
-                else:
-                    matchDict[hab_task] = tod_task
-            else:
-                matchDict[hab_task] = tod_task
+            tid = tod_task.id
+            matchDict[tid] = {}
+            matchDict[tid]['hab'] = hab_task
+            matchDict[tid]['tod'] = tod_task
+            main.add_hab_id(tid,hab_task)
 
-#Ugh. I need to make sure I don't catch complete tasks in here. ugh. 
-for task in tod_uniq:
-    if task.complete == 1:
-        tod_uniq.remove(task)
+tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
-for task in hab_uniq:
-    if task.completed == "True":
-        hab_uniq.remove(task)
-
-hab_dup = matchDict.keys()
-hab_uniq = list(set(hab_tasks) - set(hab_dup))
-tod_dup = matchDict.values()
-tod_uniq = list(set(tod_tasks) - set(tod_dup))
-    
-
-#Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copietos of the individual tasks...
+#Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
 for i in tod_uniq:
     hab = main.make_hab_from_tod(i)
     main.write_hab_task(hbt,hab)
@@ -127,7 +101,6 @@ for i in tod_uniq:
     else:
         main.write_hab_todo(hbt,task)'''
     
-
 #I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login
 for task in hab_uniq:
     if task.category== "daily":
@@ -138,33 +111,31 @@ for task in hab_uniq:
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
-    if matchDict[t].complete == 0: 
-        if t.completed == False: 
+    if matchDict[t]['tod'].complete == 0: 
+        if matchDict[t]['hab'].completed == False: 
             pass
-        elif t.completed == True: 
-            tid = matchDict[t].id
+        elif matchDict[t]['hab'].completed == True: 
+            tid = matchDict[t]['tod'].id
             tod = tod_items.get_by_id(tid)
             tod.complete()
         else:
             print("Hey, something's fishy here. Check out the Habitica task?")
-            print(t.name)
-    elif matchDict[t].complete == 1:
-        if t.completed == True:
-#            matchDict.pop(t, None)
-#            dictMatch.pop(matchDict[t], None)
+            print(matchDict[t]['hab'].name)
+    elif matchDict[t]['tod'].complete == 1:
+#        print(matchDict[t]['tod'])
+        if matchDict[t]['hab'].completed == True:
             pass
-        elif t.completed == False: 
-            main.complete_hab_todo(hbt,t)
+        elif matchDict[t]['hab'].completed == False: 
+            main.complete_hab_todo(hbt,matchDict[t]['hab'])
         else:
             print("Hey, something's fishy here. Check out the Habitica task?")            
-            print(t.name)
+            print(matchDict[t]['hab'].name)
     else:
         print("uh, something's weird here. Check out the Todoist task?")
-        print(matchDict[t].name)
+        print(matchDict[t]['tod'])
 
 #Wrapping it all up: saving matchDict, committing changes to todoist
-dict_list = [matchDict, dictMatch]
 pkl_out = open('habtod_matchDict.pkl','w')
-pickle.dump(dict_list, pkl_out)
+pickle.dump(matchDict, pkl_out)
 pkl_out.close()
 tod_user.commit()
