@@ -111,6 +111,7 @@ for task in hab_uniq:
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
+    
     if matchDict[t]['tod'].complete == 0: 
         if matchDict[t]['hab'].completed == False: 
             pass
@@ -122,14 +123,14 @@ for t in matchDict: #make sure neither of these are used elsewhere in code
             print("Hey, something's fishy here. Check out the Habitica task?")
             print(matchDict[t]['hab'].name)
     elif matchDict[t]['tod'].complete == 1:
-#        print(matchDict[t]['tod'])
-        if matchDict[t]['hab'].completed == True:
-            pass
-        elif matchDict[t]['hab'].completed == False: 
-            main.complete_hab_todo(hbt,matchDict[t]['hab'])
-        else:
-            print("Hey, something's fishy here. Check out the Habitica task?")            
-            print(matchDict[t]['hab'].name)
+        print(matchDict[t]['tod'])
+#        if matchDict[t]['hab'].completed == True:
+#            pass
+#        elif matchDict[t]['hab'].completed == False: 
+#            main.complete_hab_todo(hbt,matchDict[t]['hab'])
+#        else:
+#            print("Hey, something's fishy here. Check out the Habitica task?")            
+#            print(matchDict[t]['hab'].name)
     else:
         print("uh, something's weird here. Check out the Todoist task?")
         print(matchDict[t]['tod'])
