@@ -41,6 +41,35 @@ SECTION_CACHE_QUEST = 'Quest'
 Small utilities written by me start here.
 """
 
+def get_all_habtasks(auth):
+    #Todoist tasks are, I think, classes. Let's make Habitica tasks classes, too.
+    url = 'https://habitica.com/api/v3/tasks/user/'
+    response = requests.get(url,headers=auth)
+    hab_raw = response.json()
+    hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_tasks. Hrm. Weeeelll, if I make a class elsewhere....
+    
+    #In order to get any records of completed tasks, I need to make a separate request...
+    completedAuth = auth.copy()
+    completedAuth['type'] = 'completedTodos'
+    response2 = requests.get(url,headers=completedAuth)
+    completed_raw = response2.json()['data']
+    hab_tasklist.append(completed_tasks)
+    
+    #keeping records of all our tasks
+    hab_tasks = [] 
+
+    #No habits right now, I'm afraid, in hab_tasks--Todoist gets upset. So we're going to make a list of dailies and todos instead...
+    for task in hab_tasklist: 
+        item = HabTask(task)
+        if item.category == 'reward':
+            pass
+        elif item.category == 'habit': 
+            pass
+        else:
+            hab_tasks.append(item)
+
+    return(hab_tasks, response, response2)
+
 def tod_login(configfile):
     logging.debug('Loading todoist auth data from %s' % configfile)
 
@@ -85,9 +114,14 @@ def get_started(config):
 def make_daily_from_tod(tod_task):
     new_hab = {'type':'daily'}
     new_hab['text'] = tod_task.name
-    date = list(tod_task.due_date)
-    date_trim = date[0:15]
-    dueNow = ''.join(date_trim)
+
+    try:
+        date = list(tod_task.task_dict['due_date_utc'])
+        date_trim = date[0:15]
+        dueNow = ''.join(date_trim)
+    except:
+        dueNow = ''
+        
     new_hab['date'] = dueNow
     new_hab['alias'] = tod_task.id
     if tod_task.priority == 1:
@@ -103,9 +137,13 @@ def make_daily_from_tod(tod_task):
 def make_hab_from_tod(tod_task):
     new_hab = {'type':'todo'}
     new_hab['text'] = tod_task.name
-    date = list(tod_task.due_date)
-    date_trim = date[0:15]
-    dueNow = ''.join(date_trim)
+    try:
+        date = list(tod_task.task_dict['due_date_utc'])
+        date_trim = date[0:15]
+        dueNow = ''.join(date_trim)
+    except:
+        dueNow = ''
+        
     new_hab['date'] = dueNow
     new_hab['alias'] = tod_task.id
     if tod_task.priority == 1:
@@ -172,6 +210,23 @@ def add_hab_id(tid,hab):
     r = requests.put(headers=auth, url=url, data=data)
     return r
     
+def update_tod_matchDict(tod_tasks, matchDict):
+    for tod in tod_tasks:
+        if tod.id in matchDict.keys():
+            matchDict[tod.id]['tod'] = tod
+        else:
+            pass
+
+def update_hab_matchDict(hab_tasks, matchDict):
+    for hab in hab_tasks: 
+        if 'alias' in hab.task_dict.keys():
+            tid = int(hab.alias)
+            if tid in matchDict.keys():
+                matchDict[tid]['hab'] = hab
+        else:
+            pass
+
+        
 def load_auth(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
