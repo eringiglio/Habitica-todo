@@ -99,7 +99,13 @@ class HabTask(object):
     def name(self, name):
         """ Task name """
         self.__task_dict['text'] = name
-        
+    
+    @property
+    def alias(self):
+        """ Task name """
+        return self.__task_dict['alias']
+
+    
     @property
     def category(self):
         """ Task type """
