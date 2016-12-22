@@ -74,10 +74,12 @@ except:
 
 pkl_file.close()
 
-#Right. That needs to happen. Use the hab and tod tasks to update our dictionaries... 
-
-#We'll want to just... pull all the unmatched tasks out of our lists of tasks. Yeah? 
+#We'll want to just... pull all the unmatched completed tasks out of our lists of tasks. Yeah? 
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
+
+#Also, update main matchDict file...
+main.update_tod_matchDict(tod_tasks, matchDict)
+main.update_hab_matchDict(hab_tasks, matchDict)
 
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for tod_task in tod_uniq:
@@ -111,11 +113,13 @@ for task in hab_uniq:
 #I also want to make sure that any tasks which are checked off AND have paired tasks agree on completion.
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
-    
+    print(t)
     if matchDict[t]['tod'].complete == 0: 
+        print("TOD INCOMPETE: %s " % (matchDict[t]['tod'].name))
         if matchDict[t]['hab'].completed == False: 
-            pass
+            print("HAB FALSE: %s" % (matchDict[t]['hab'].name))
         elif matchDict[t]['hab'].completed == True: 
+            print("HAB TRUE: %s" % (matchDict[t]['hab'].name))
             tid = matchDict[t]['tod'].id
             tod = tod_items.get_by_id(tid)
             tod.complete()
@@ -123,17 +127,21 @@ for t in matchDict: #make sure neither of these are used elsewhere in code
             print("Hey, something's fishy here. Check out the Habitica task?")
             print(matchDict[t]['hab'].name)
     elif matchDict[t]['tod'].complete == 1:
-        print(matchDict[t]['tod'])
-#        if matchDict[t]['hab'].completed == True:
+        print("TOD COMPLETE: %s " % (matchDict[t]['tod'].name))
+        if matchDict[t]['hab'].completed == True:
+            print("HAB TRUE %s" % (matchDict[t]['hab'].name))
 #            pass
-#        elif matchDict[t]['hab'].completed == False: 
-#            main.complete_hab_todo(hbt,matchDict[t]['hab'])
-#        else:
-#            print("Hey, something's fishy here. Check out the Habitica task?")            
-#            print(matchDict[t]['hab'].name)
+        elif matchDict[t]['hab'].completed == False: 
+            print("HAB FALSE %s" % (matchDict[t]['hab'].name))
+#            main.complete_hab_todo(hbt,matchDict[t]['hab
+                matchDict[t]['hab']['
+        else:
+            print("Hey, something's fishy here. Check out the Habitica task?")            
+            print(matchDict[t]['hab'].name)
     else:
         print("uh, something's weird here. Check out the Todoist task?")
         print(matchDict[t]['tod'])
+    print(t) 
 
 #Wrapping it all up: saving matchDict, committing changes to todoist
 pkl_out = open('habtod_matchDict.pkl','w')
