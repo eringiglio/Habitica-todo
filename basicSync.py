@@ -15,11 +15,12 @@ from hab_task import HabTask
 from todo_task import TodTask
 import main
 import random
+import json
+
 
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
 from bisect import bisect
-import json
 import logging
 import netrc
 import sys 
