@@ -226,7 +226,6 @@ def update_hab_matchDict(hab_tasks, matchDict):
         else:
             pass
 
-        
 def load_auth(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
