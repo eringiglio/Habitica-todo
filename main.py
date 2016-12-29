@@ -53,11 +53,12 @@ def get_all_habtasks(auth):
     completedAuth['type'] = 'completedTodos'
     response2 = requests.get(url,headers=completedAuth)
     completed_raw = response2.json()['data']
-    hab_tasklist.append(completed_tasks)
+    for i in completed_raw:
+        hab_tasklist.append(i)
     
     #keeping records of all our tasks
     hab_tasks = [] 
-
+    
     #No habits right now, I'm afraid, in hab_tasks--Todoist gets upset. So we're going to make a list of dailies and todos instead...
     for task in hab_tasklist: 
         item = HabTask(task)
@@ -67,7 +68,6 @@ def get_all_habtasks(auth):
             pass
         else:
             hab_tasks.append(item)
-
     return(hab_tasks, response, response2)
 
 def tod_login(configfile):
@@ -131,7 +131,7 @@ def make_daily_from_tod(tod_task):
     elif tod_task.priority == 3:
         new_hab['priority'] = 1
     elif tod_task.priority == 4:
-        new_hab['priority'] = .1
+        new_hab['priority'] = 1
     return new_hab
 
 def make_hab_from_tod(tod_task):
@@ -153,7 +153,7 @@ def make_hab_from_tod(tod_task):
     elif tod_task.priority == 3:
         new_hab['priority'] = 1
     elif tod_task.priority == 4:
-        new_hab['priority'] = .1
+        new_hab['priority'] = 1
     return new_hab
 
 def get_uniqs(matchDict,tod_tasks,hab_tasks):
