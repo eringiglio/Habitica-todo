@@ -66,6 +66,12 @@ tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 main.update_tod_matchDict(tod_tasks, matchDict)
 main.update_hab_matchDict(hab_tasks, matchDict)
 
+#Dailies in Habitica and recurring tasks in Todoist are a smidge weird, so we want to pull them both out and treat them a little separately
+hab_dailies = []
+tod_recurring = []
+
+
+
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for tod_task in tod_uniq:
     for hab_task in hab_uniq:
@@ -80,13 +86,12 @@ tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 #Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
 for i in tod_uniq:
-    hab = main.make_hab_from_tod(i)
-    main.write_hab_task(hbt,hab)
-'''    if ev in i.date_string:
+    if ev in i.date_string:
         hab = main.make_daily_from_tod(i)
         main.write_hab_daily(hbt, hab)
     else:
-        main.write_hab_todo(hbt,task)'''
+        hab = main.make_hab_from_tod(i)
+        main.write_hab_todo(hbt,task)
     
 #I'm just assuming that all these tasks can be dumped in the inbox. See above for todoist Inbox ID code, which is located under login
 for task in hab_uniq:
@@ -99,6 +104,7 @@ for task in hab_uniq:
 #If one is checked complete, both should be...
 for t in matchDict: #make sure neither of these are used elsewhere in code
     print(t)
+    if matchDict[t]['tod'].
     if matchDict[t]['tod'].complete == 0: 
         print("TOD INCOMPETE: %s " % (matchDict[t]['tod'].name))
         if matchDict[t]['hab'].completed == False: 
