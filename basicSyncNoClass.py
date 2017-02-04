@@ -11,12 +11,9 @@ import requests
 import scriptabit
 import pickle
 import todoist
-from hab_task import HabTask
-from todo_task import TodTask
-import main
+import mainNoClass as main
 import random
 import json
-
 
 from subprocess import call # useful for running command line commands in python
 from urllib2 import urlopen
@@ -45,7 +42,7 @@ tod_tasks = []
 tod_items = tod_user.items
 tod_tasklist = tod_items.all()
 for i in range(0, len(tod_tasklist)):
-    tod_tasks.append(TodTask(tod_tasklist[i].data))
+    tod_tasks.append(tod_tasklist[i].data)
 
 """
 Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
@@ -74,8 +71,8 @@ r = []
 #check to pull out all the unmatched tasks we DON'T see in matchDict, our dictionary of paired habitica and todoist tasks
 for tod_task in tod_uniq:
     for hab_task in hab_uniq:
-        if tod_task.name == hab_task.name:
-            tid = tod_task.id
+        if tod_task['content'] == hab_task['text']:
+            tid = tod_task['id']
             matchDict[tid] = {}
             matchDict[tid]['hab'] = hab_task
             matchDict[tid]['tod'] = tod_task
@@ -85,7 +82,7 @@ tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 #Now we've confirmed that we don't have any accidental duplicates and that previously sent tasks are all knocked out of the way, it's time to add copies of the individual tasks...
 for i in tod_uniq:
-    if ev in i.date_string:
+    if 'ev' in i.date_string:
         hab = main.make_daily_from_tod(i)
         main.write_hab_daily(hbt, hab)
     else:
@@ -111,7 +108,7 @@ for t in matchDict: #make sure neither of these are used elsewhere in code
             print("HAB TRUE: %s" % (matchDict[t]['hab'].name))
 #            tid = matchDict[t]['tod'].id
 #            tod = tod_items.get_by_id(tid)
-#            tod.complete()
+#            main.complete_tod_task(tod)
         else:
             print("Hey, something's fishy here. Check out the Habitica task?")
             print(matchDict[t]['hab'].name)
@@ -122,8 +119,8 @@ for t in matchDict: #make sure neither of these are used elsewhere in code
 #            pass
         elif matchDict[t]['hab'].completed == False: 
             print("HAB FALSE %s" % (matchDict[t]['hab'].name))
-#            main.complete_hab_todo(hbt,matchDict[t]['hab
-#                matchDict[t]['hab']['
+#            main.complete_hab_todo(hbt,matchDict[t]['hab'])
+#                matchDict[t]['hab']
         else:
             print("Hey, something's fishy here. Check out the Habitica task?")            
             print(matchDict[t]['hab'].name)

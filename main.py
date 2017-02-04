@@ -176,14 +176,18 @@ def get_uniqs(matchDict,tod_tasks,hab_tasks):
         tod_uniq = []
 
     tod_u = []
-    hab_u = []
+    hab_u = hab_uniq[:]
     for task in tod_uniq:
-        if task.complete == 0:
-            tod_u.append(task)
+        if task.history == 0 and task.complete == 0:
+            if task.id in matchDict.keys():
+                continue
+            else:
+                tod_u.append(task)
 
-    for task in hab_uniq:
-        if task.completed == "False":
-            hab_u.append(task)
+    for hab in hab_uniq:
+        for i in matchDict:
+            if matchDict[i]['hab'].task_dict == hab.task_dict:
+                hab_u.remove(hab)
 
     return tod_u, hab_u
 
@@ -197,7 +201,19 @@ def write_hab_task(hbt,task):
     auth, hbt = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/user/'
     hab = json.dumps(task)
-    requests.post(headers=auth, url=url, data=hab)
+    r = requests.post(headers=auth, url=url, data=hab)
+    return r
+
+def get_hab_fromID(tid):
+    import requests
+    import json
+    auth, hbt = get_started('auth.cfg')
+    url = 'https://habitica.com/api/v3/tasks/'
+    url += str(tid)
+    r = requests.get(headers=auth, url=url)
+    task = r.json()
+    hab = HabTask(task['data'])
+    return hab
 
 def add_hab_id(tid,hab): 
     import requests
