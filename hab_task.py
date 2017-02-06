@@ -105,7 +105,14 @@ class HabTask(object):
         """ Task name """
         return self.__task_dict['alias']
 
-    
+    @property
+    def date(self):
+        """ Task name """
+        try: 
+            return self.__task_dict['date']
+        except:
+            return ''
+
     @property
     def category(self):
         """ Task type """

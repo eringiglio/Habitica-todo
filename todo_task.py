@@ -48,6 +48,11 @@ class TodTask(object):
 
     @property
     #task name
+    def history(self):
+        return self.__task_dict['in_history']
+        
+    @property
+    #task name
     def name(self):
         return self.__task_dict['content']
     
@@ -70,7 +75,7 @@ class TodTask(object):
     #due date
     def due_date(self):
         return self.__task_dict['due_date_utc']
-    
+
     @property
     #date in string form
     def date_string(self):
