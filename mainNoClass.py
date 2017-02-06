@@ -9,8 +9,6 @@ import todoist
 from habitica import api 
 import requests
 import json
-from hab_task import HabTask
-from todo_task import TodTask
 import os
 import logging
 try:
@@ -24,7 +22,7 @@ except:
 Version control, basic paths
 """
 
-VERSION = 'Habitica-todo version 1.0.0'
+VERSION = 'Habitica-todo version 0.1.0'
 TASK_VALUE_BASE = 0.9747  # http://habitica.wikia.com/wiki/Task_Value
 HABITICA_REQUEST_WAIT_TIME = 0.5  # time to pause between concurrent requests
 HABITICA_TASKS_PAGE = '/#/tasks'
@@ -61,13 +59,12 @@ def get_all_habtasks(auth):
     
     #No habits right now, I'm afraid, in hab_tasks--Todoist gets upset. So we're going to make a list of dailies and todos instead...
     for task in hab_tasklist: 
-        item = HabTask(task)
-        if item.category == 'reward':
+        if task['type'] == 'reward':
             pass
-        elif item.category == 'habit': 
+        elif task['type'] == 'habit': 
             pass
         else:
-            hab_tasks.append(item)
+            hab_tasks.append(task)
     return(hab_tasks, response, response2)
 
 def tod_login(configfile):
@@ -113,16 +110,13 @@ def get_started(config):
 
 def make_daily_from_tod(tod_task):
     new_hab = {'type':'daily'}
-    new_hab['text'] = tod_task.name
-
-    try:
-        dateListed = list(tod_task.task_dict['due_date_utc'])
-        date_trim = dateListed[0:15]
-        dueNow = ''.join(date_trim)
-    except:
-        dueNow = ''
-        
-    new_hab['date'] = dueNow
+    new_hab['text'] = tod_task['content']
+    
+    days_due = tod_task['date_string']
+    
+    if ' day' in days_due:
+        print(days_due)
+    
     new_hab['alias'] = tod_task.id
     if tod_task.priority == 1:
         new_hab['priority'] = 2
@@ -156,32 +150,35 @@ def make_hab_from_tod(tod_task):
         new_hab['priority'] = 1
     return new_hab
 
-def update_hab(hab):
-    import requests
-    import json
-    auth, hbt = get_started('auth.cfg')
-    url = 'https://habitica.com/api/v3/tasks/'
-    url += hab.task_dict['id']
-    data = json.dumps(hab.task_dict)
-    r = requests.put(headers=auth, url=url, data=data)
-    return r    
-
 def get_uniqs(matchDict,tod_tasks,hab_tasks):
-    tod_uniq = []
+    hab_dup = []
     hab_uniq = []
-    
-    for tod in tod_tasks:
-        tid = tod.id
-        if tod.complete == 0:
-            if tid not in matchDict.keys():
-                tod_uniq.append(tod)
-    
-    for hab in hab_tasks:
-        tid = int(hab.alias)
-        if tid not in matchDict.keys():
-            hab_uniq.append(hab)
-    
-    return tod_uniq, hab_uniq
+    tod_dup = []
+    tod_uniq = []
+    for i in matchDict:
+        hab_dup.append(matchDict[i]['hab'])
+        tod_dup.append(matchDict[i]['tod'])
+    try:
+        hab_uniq = [i for i in hab_tasks if i not in hab_dup]
+    except:
+        hab_uniq = []
+    try:
+        tod_uniq = [i for i in tod_tasks if i not in tod_dup]
+    except:
+        tod_uniq = []
+    tod_u = []
+    hab_u = hab_uniq[:]
+    for task in tod_uniq:
+        if task['in_history'] == 0 and task['checked'] == 0:
+            tod_u.append(task)
+    for task in hab_u:
+        try:
+            alias = int(task['alias'])
+        except:
+            alias = ''
+        if alias in matchDict.keys():
+                hab_u.remove(task)
+    return tod_u, hab_u
 
 def write_hab_task(hbt,task): 
     """
@@ -193,42 +190,30 @@ def write_hab_task(hbt,task):
     auth, hbt = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/user/'
     hab = json.dumps(task)
-    r = requests.post(headers=auth, url=url, data=hab)
-    return r
-
-def get_hab_fromID(tid):
-    import requests
-    import json
-    auth, hbt = get_started('auth.cfg')
-    url = 'https://habitica.com/api/v3/tasks/'
-    url += str(tid)
-    r = requests.get(headers=auth, url=url)
-    task = r.json()
-    hab = HabTask(task['data'])
-    return hab
+    requests.post(headers=auth, url=url, data=hab)
 
 def add_hab_id(tid,hab): 
     import requests
     import json
     auth, hbt = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
-    hab.task_dict['alias'] = str(tid)
-    url += hab.task_dict['id']
-    data = json.dumps(hab.task_dict)
+    hab['alias'] = str(tid)
+    url += hab['id']
+    data = json.dumps(hab)
     r = requests.put(headers=auth, url=url, data=data)
     return r
     
 def update_tod_matchDict(tod_tasks, matchDict):
     for tod in tod_tasks:
-        if tod.id in matchDict.keys():
-            matchDict[tod.id]['tod'] = tod
+        if tod['id'] in matchDict.keys():
+            matchDict[tod['id']]['tod'] = tod
         else:
             pass
 
 def update_hab_matchDict(hab_tasks, matchDict):
     for hab in hab_tasks: 
-        if 'alias' in hab.task_dict.keys():
-            tid = int(hab.alias)
+        if 'alias' in hab.keys():
+            tid = int(hab['alias'])
             if tid in matchDict.keys():
                 matchDict[tid]['hab'] = hab
         else:
@@ -274,6 +259,12 @@ def complete_hab_todo(hbt, task):
     pushes a completed task to the api.
     """
     hbt.user.tasks(_id=task.id, _direction='up', _method='post')
+    
+def complete_tod_todo(tod_task):
+    if 'ev' in tod_task['date_string']:
+        tod_task.complete()
+    else:
+        tod_task.complete()
     
 def check_matchDict(matchDict):
     """Troubleshooting"""

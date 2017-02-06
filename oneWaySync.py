@@ -73,7 +73,6 @@ for tod_task in tod_uniq:
     if tid not in matchDict.keys():
         for hab_task in hab_uniq:
             if tod_task.name == hab_task.name:
-                print("match!")
                 matchDict[tid] = {}
                 matchDict[tid]['hab'] = hab_task
                 matchDict[tid]['tod'] = tod_task
@@ -97,10 +96,9 @@ for tod in tod_uniq:
 
 #Check that anything which has recently been completed gets updated in hab
 for tid in matchDict:
-    print(tid)
     if matchDict[tid]['tod'].complete == 0: 
         if matchDict[tid]['hab'].completed == False:
-            print("Both undone")
+            continue
         elif matchDict[tid]['hab'].completed == True:
             fix_tod = tod_user.items.get_by_id(tid)
             fix_tod.close()
@@ -108,14 +106,26 @@ for tid in matchDict:
             print("ERROR: check HAB %s" % tid)
     elif matchDict[tid]['tod'].complete == 1:
         if matchDict[tid]['hab'].completed == False:
+            print(tid)
             fix_hab = matchDict[tid]['hab']
             main.complete_hab_todo(hbt, fix_hab)
         elif matchDict[tid]['hab'].completed == True:
-            print("both done")
+            continue
         else: 
             print("ERROR: check HAB %s" % tid)
     else:
         print("ERROR: check TOD %s" % tid)
+    
+    r = []
+    try: 
+        trim_date =  list(matchDict[tid]['tod'].task_dict['due_date_utc'])
+    except:
+        continue
+    date_trim = trim_date[0:15]
+    dueNow = ''.join(date_trim)
+    if dueNow != matchDict[tid]['hab'].date and matchDict[tid]['hab'].category == 'todo':
+        matchDict[tid]['hab'].task_dict['date'] = dueNow
+        r = main.update_hab(matchDict[tid]['hab']) 
 
 pkl_out = open('habtod_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
