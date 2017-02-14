@@ -156,6 +156,28 @@ def make_hab_from_tod(tod_task):
         new_hab['priority'] = 1
     return new_hab
 
+def sync_hab2todo(hab, tod):
+    habDict = hab.task_dict
+    if tod.priority == 1:
+        habDict['priority'] = 2
+    elif tod.priority == 2:
+        habDict['priority'] = 1.5
+    else:
+        habDict['priority'] = 1
+    
+    try:
+        date = list(tod_task.task_dict['due_date_utc'])
+        date_trim = date[0:15]
+        dueNow = ''.join(date_trim)
+    except:
+        dueNow = ''
+    
+    if hab.date != dueNow:
+        habDict['date'] = dueNow
+    
+    new_hab = HabTask(habDict)
+    return new_hab
+
 def update_hab(hab):
     import requests
     import json
