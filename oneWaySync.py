@@ -62,6 +62,7 @@ for hab in hab_tasks:
         continue
     matchDict[tid] = {}
     matchDict[tid]['hab'] = hab
+    print(tid)
     tod = TodTask(tod_items.get_by_id(tid).data)
     matchDict[tid]['tod'] = tod
 
@@ -98,7 +99,9 @@ for tod in tod_uniq:
 for tid in matchDict:
     if matchDict[tid]['tod'].complete == 0: 
         if matchDict[tid]['hab'].completed == False:
-            continue
+            matched_hab = main.sync_hab2todo(matchDict[tid]['hab'],matchDict[tid]['tod'])
+            r = main.update_hab
+            print("updated %s" % tid)
         elif matchDict[tid]['hab'].completed == True:
             fix_tod = tod_user.items.get_by_id(tid)
             fix_tod.close()
@@ -127,7 +130,7 @@ for tid in matchDict:
         matchDict[tid]['hab'].task_dict['date'] = dueNow
         r = main.update_hab(matchDict[tid]['hab']) 
 
-pkl_out = open('habtod_matchDict.pkl','w')
+pkl_out = open('oneway_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
 pkl_out.close()
 tod_user.commit()
