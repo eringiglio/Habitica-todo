@@ -70,24 +70,6 @@ def get_all_habtasks(auth):
         else:
             hab_tasks.append(item)
     return(hab_tasks, response, response2)
-
-def fakeCompleteTods(tod_list,matchDict):
-    #Fakes completion of any todoist items that is not currently due today, to handle recurring items
-    fakeCompleteTods = []
-    for tod in tod_list:
-        tod.id = tid
-        if tod.dueToday == "No":
-            tod.complete = 1
-            matchDict[tid]['tod'] = tod
-            fakeCompleteTods.append(tod)
-    return fakeCompleteTods, matchDict
-    
-def uncompleteFakeTods(tod_list):
-    #fixes the fake, temporary completions of tods _before_ they can be committed through the list. oops. 
-    for tod in tod_list:
-        tod.complete = 0
-        tod.id = tid
-        matchDict[tid]['tod'] = tod
     
 def tod_login(configfile):
     logging.debug('Loading todoist auth data from %s' % configfile)
