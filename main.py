@@ -133,11 +133,12 @@ def get_started(config):
 def make_daily_from_tod(tod_task):
     new_hab = {'type':'daily'}
     new_hab['text'] = tod_task.name
-
+    
+    if tod_task.
+    
     try:
         dateListed = list(tod_task.task_dict['due_date_utc'])
-        dueNow = 
-        
+        dueNow = parser.parse(dateListed).date()        
     except:
         dueNow = ''
         
@@ -157,10 +158,9 @@ def make_hab_from_tod(tod_task):
     new_hab = {'type':'todo'}
     new_hab['text'] = tod_task.name
     try:
-        date = list(tod_task.task_dict['due_date_utc'])
-        date_trim = date[0:15]
-        dueNow = ''.join(date_trim)
-    except:
+        dateListed = list(tod_task.task_dict['due_date_utc'])
+        dueNow = parser.parse(dateListed).date()        
+     except:
         dueNow = ''
         
     new_hab['date'] = dueNow
