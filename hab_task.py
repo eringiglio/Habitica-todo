@@ -11,6 +11,7 @@ from __future__ import (
 from builtins import *
 from datetime import datetime
 from tzlocal import get_localzone
+import time
 
 from dates import parse_date_utc
 from task import CharacterAttribute, ChecklistItem, Difficulty, Task
@@ -55,28 +56,67 @@ class HabTask(object):
         return self.__task_dict
 
     @property
-    #What days of the week does this daily repeat?
+    #When will this recurring task next be due?
+    def starting(self):
+        if self.__task_dict['type'] == 'daily':
+            start = self.__task_dict['startDate']
+        else:
+            start = ''
+    
+    @starting.setter
+    def starting(self, starting):
+        """ Task name """
+        self.__task_dict['startDate'] = starting
+    
+    @property
+    #Is this a weekly daily or something that repeats every X days?
+    def rep_pattern(self):
+        if self.__task_dict['type'] == 'daily':
+            return self.__task_dict['frequency']
+        else:
+            return ''
+   
+    @rep_pattern.setter
+    def rep_pattern(self, rep):
+        """ Task name """
+        self.__task_dict['frequency'] = rep
+   
+    @property
+    #What days of the week does this daily repeat--or in how many days?
     def dailies_due(self):
         if self.__task_dict['type'] == 'daily':
-            days = ['ev ']
-            if self.__task_dict['repeat']["m"] == True:
-                    days.append("monday")
-            if self.__task_dict['repeat']["t"] == True:
-                    days.append("tuesday")
-            if self.__task_dict['repeat']["w"] == True:
-                    days.append("wednesday")
-            if self.__task_dict['repeat']["th"] == True:
-                    days.append("thursday")
-            if self.__task_dict['repeat']["f"] == True:
-                    days.append("friday")
-            if self.__task_dict['repeat']["s"] == True:
-                    days.append("saturday")
-            if self.__task_dict['repeat']["su"] == True:
-                    days.append("sunday")
-            days.append(', ')
-            days.pop()
-            due_dates = ''.join(days)
-            return due_dates
+            if self.__task_dict['frequency'] == 'weekly':
+                days = ['ev ']
+                if self.__task_dict['repeat']["m"] == True:
+                        days.append("monday")
+                if self.__task_dict['repeat']["t"] == True:
+                        days.append("tuesday")
+                if self.__task_dict['repeat']["w"] == True:
+                        days.append("wednesday")
+                if self.__task_dict['repeat']["th"] == True:
+                        days.append("thursday")
+                if self.__task_dict['repeat']["f"] == True:
+                        days.append("friday")
+                if self.__task_dict['repeat']["s"] == True:
+                        days.append("saturday")
+                if self.__task_dict['repeat']["su"] == True:
+                        days.append("sunday")
+                days.append(', ')
+                days.pop()
+                due_dates = ''.join(days)
+                return due_dates
+            else:
+                dayCycle = self.__task_dict['everyX']
+                return dayCycle
+        else:
+            return ''
+    
+    @property
+    #Is this task due today?
+    def due_now(self):
+        now = time.strftime()
+        if self.__task_dict['type'] == 'daily':
+            return ''
         else:
             return ''
 
@@ -108,10 +148,13 @@ class HabTask(object):
     @property
     def date(self):
         """ Task name """
-        try: 
-            return self.__task_dict['date']
-        except:
-            return ''
+        if  self.__task_dict['type'] == 'todo':
+            try:
+                return self.__task_dict['date']
+            except:
+                return ''
+        else:
+            return self.__task_dict['startDate']
 
     @property
     def category(self):
