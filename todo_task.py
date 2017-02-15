@@ -40,7 +40,15 @@ class TodTask(object):
     #Get the task dictionary as is
     def task_dict(self):
         return self.__task_dict
-    
+
+    @property
+    #Get the task dictionary as is
+    def recurring(self):
+        if 'ev' in self.__task_dict['date_string']:
+            return  'Yes'
+        else:
+            return 'No'
+        
     @property
     #Get task ID
     def id(self):
@@ -71,11 +79,48 @@ class TodTask(object):
     def complete(self):
         return self.__task_dict['checked']
     
+    @complete.setter
+    def complete(self, status):
+        self.__task_dict['checked'] = status
+    
     @property
     #due date
     def due_date(self):
         return self.__task_dict['due_date_utc']
+    
+    @due_date.setter
+    def due_date(self, date):
+        self.__task_dict['due_date_utc'] = date
+    
+    @property
+    #due date
+    def due(self):
+        from dateutil import parser
+        import datetime
+        date = parser.parse(self.__task_dict['due_date_utc'])
+        return date
+    
+    @property
+    #is it due TODAY?
+    def dueToday(self):
+        from dateutil import parser
+        import datetime
+        import pytz
+        today = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+        try:
+            wobble = parser.parse(self.__task_dict['due_date_utc'])
+            dueDate = wobble.date()
+        except:
+            dueDate = ""
+            
+        if today.date() == dueDate:
+            return 'Yes'
+        elif dueDate == "":
+            return "No due date"
+        else:
+            return 'No'
 
+    
     @property
     #date in string form
     def date_string(self):
