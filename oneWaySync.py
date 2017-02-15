@@ -16,6 +16,8 @@ import random
 import json
 from hab_task import HabTask
 from todo_task import TodTask
+from datetime import datetime
+from dateutil import parser
 
 #Here's where I'm putting my login stuff for Todoist.
 tod_user = main.tod_login('auth.cfg')
@@ -65,6 +67,7 @@ for hab in hab_tasks:
     print(tid)
     tod = TodTask(tod_items.get_by_id(tid).data)
     matchDict[tid]['tod'] = tod
+#    matchDict[tid]['recurs'] = tod.check_recurs
 
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
@@ -82,9 +85,11 @@ for tod_task in tod_uniq:
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 for tod in tod_uniq:
-    #if "ev" in tod.date_string: #right, I'm gonna just put that on notice for the moment while I work on this
     tid = tod.id
-    new_hab = main.make_hab_from_tod(tod)
+    if tod.recurring == "Yes"for todS:
+        new_hab = main.make_daily_from_tod(tod)
+    else:
+        new_hab = main.make_hab_from_tod(tod)
     r = main.write_hab_task(hbt,new_hab)
     if r.ok == False:
         matchDict[tid] = {}
@@ -96,6 +101,7 @@ for tod in tod_uniq:
     matchDict[tid]['hab'] = new_hab
 
 #Check that anything which has recently been completed gets updated in hab
+#fakeDoneTods = main.fakeCompleteTods(tod_tasks)
 for tid in matchDict:
     if matchDict[tid]['tod'].complete == 0: 
         if matchDict[tid]['hab'].completed == False:
@@ -133,4 +139,4 @@ for tid in matchDict:
 pkl_out = open('oneway_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
 pkl_out.close()
-tod_user.commit()
+#tod_user.commit()
