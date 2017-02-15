@@ -17,7 +17,8 @@ try:
     import ConfigParser as configparser
 except:
     import configparser	
-
+from datetime import datetime
+from dateutil import parser
 
 
 """
@@ -70,6 +71,24 @@ def get_all_habtasks(auth):
             hab_tasks.append(item)
     return(hab_tasks, response, response2)
 
+def fakeCompleteTods(tod_list,matchDict):
+    #Fakes completion of any todoist items that is not currently due today, to handle recurring items
+    fakeCompleteTods = []
+    for tod in tod_list:
+        tod.id = tid
+        if tod.dueToday == "No":
+            tod.complete = 1
+            matchDict[tid]['tod'] = tod
+            fakeCompleteTods.append(tod)
+    return fakeCompleteTods, matchDict
+    
+def uncompleteFakeTods(tod_list):
+    #fixes the fake, temporary completions of tods _before_ they can be committed through the list. oops. 
+    for tod in tod_list:
+        tod.complete = 0
+        tod.id = tid
+        matchDict[tid]['tod'] = tod
+    
 def tod_login(configfile):
     logging.debug('Loading todoist auth data from %s' % configfile)
 
@@ -117,8 +136,8 @@ def make_daily_from_tod(tod_task):
 
     try:
         dateListed = list(tod_task.task_dict['due_date_utc'])
-        date_trim = dateListed[0:15]
-        dueNow = ''.join(date_trim)
+        dueNow = 
+        
     except:
         dueNow = ''
         
@@ -199,9 +218,13 @@ def get_uniqs(matchDict,tod_tasks,hab_tasks):
                 tod_uniq.append(tod)
     
     for hab in hab_tasks:
-        tid = int(hab.alias)
-        if tid not in matchDict.keys():
-            hab_uniq.append(hab)
+        try:
+            tid = int(hab.alias)
+        except:
+            tid = 0
+            
+            if tid not in matchDict.keys():
+                hab_uniq.append(hab)
     
     return tod_uniq, hab_uniq
 
