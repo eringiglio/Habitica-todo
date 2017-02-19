@@ -64,7 +64,6 @@ for hab in hab_tasks:
         continue
     matchDict[tid] = {}
     matchDict[tid]['hab'] = hab
-    print(tid)
     tod = TodTask(tod_items.get_by_id(tid).data)
     matchDict[tid]['tod'] = tod
 #    matchDict[tid]['recurs'] = tod.check_recurs
@@ -86,7 +85,7 @@ tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 for tod in tod_uniq:
     tid = tod.id
-    if tod.recurring == "Yes"for todS:
+    if tod.recurring == "Yes":
         new_hab = main.make_daily_from_tod(tod)
     else:
         new_hab = main.make_hab_from_tod(tod)
@@ -106,18 +105,23 @@ for tid in matchDict:
     if matchDict[tid]['tod'].complete == 0: 
         if matchDict[tid]['hab'].completed == False:
             matched_hab = main.sync_hab2todo(matchDict[tid]['hab'],matchDict[tid]['tod'])
-            r = main.update_hab
-            print("updated %s" % tid)
+            r = main.update_hab(matched_hab)
         elif matchDict[tid]['hab'].completed == True:
-            fix_tod = tod_user.items.get_by_id(tid)
-            fix_tod.close()
+            if tod.recurring == 'Yes':
+                if tod.dueToday == 'Yes':
+                    fix_tod = tod_user.items.get_by_id(tid)
+                    fix_tod.close()
+                elif tod.dueToday == "No":
+                    continue
+            else:
+                fix_tod = tod_user.items.get_by_id(tid)
+                fix_tod.close()
         else: 
             print("ERROR: check HAB %s" % tid)
     elif matchDict[tid]['tod'].complete == 1:
         if matchDict[tid]['hab'].completed == False:
-            print(tid)
-            fix_hab = matchDict[tid]['hab']
-            main.complete_hab_todo(hbt, fix_hab)
+            matchDict[tid]['hab'].completed = True
+            main.update_hab(matchDict[tid]['hab'])
         elif matchDict[tid]['hab'].completed == True:
             continue
         else: 
@@ -127,16 +131,14 @@ for tid in matchDict:
     
     r = []
     try: 
-        trim_date =  list(matchDict[tid]['tod'].task_dict['due_date_utc'])
+        dueNow =  str(parser.parse(matchDict[tid]['tod'].due_date).date())
     except:
         continue
-    date_trim = trim_date[0:15]
-    dueNow = ''.join(date_trim)
     if dueNow != matchDict[tid]['hab'].date and matchDict[tid]['hab'].category == 'todo':
         matchDict[tid]['hab'].task_dict['date'] = dueNow
         r = main.update_hab(matchDict[tid]['hab']) 
 
-pkl_out = open('oneway_matchDict.pkl','w')
+pkl_out = open('oneWay_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
 pkl_out.close()
-#tod_user.commit()
+tod_user.commit()

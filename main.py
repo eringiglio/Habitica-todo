@@ -19,6 +19,7 @@ except:
     import configparser	
 from datetime import datetime
 from dateutil import parser
+import re
 
 
 """
@@ -112,37 +113,80 @@ def get_started(config):
     hbt = api.Habitica(auth=auth)
     return auth, hbt 
 
-def make_daily_from_tod(tod_task):
+def make_daily_from_tod(tod):
+    import re
     new_hab = {'type':'daily'}
-    new_hab['text'] = tod_task.name
+    new_hab['text'] = tod.name
+    new_hab['alias'] = tod.id
+    reg = re.compile(r"ev.{0,}(?<!other)\b (mon[^t]|tues|wed|thurs|fri|sun|sat|w(or|ee)kday|weekend)", re.I)
     
-    if tod_task.
-    
-    try:
-        dateListed = list(tod_task.task_dict['due_date_utc'])
-        dueNow = parser.parse(dateListed).date()        
-    except:
-        dueNow = ''
-        
-    new_hab['date'] = dueNow
-    new_hab['alias'] = tod_task.id
-    if tod_task.priority == 1:
+    match = reg.match(tod.date_string)
+    if match:
+        new_hab['frequency'] = 'weekly'
+        daysofWeek = {}
+        if 'sun' in tod.date_string:
+            daysofWeek['su']  = True
+        else:
+            daysofWeek['su'] = False
+        if 'mon' in tod.date_string:
+            daysofWeek['m']  = True
+        else:
+            daysofWeek['m'] = False
+        if 'tues' in tod.date_string:
+            daysofWeek['t']  = True
+        else:
+            daysofWeek['t'] = False
+        if 'wed' in tod.date_string:
+            daysofWeek['w']  = True
+        else:
+            daysofWeek['w'] = False
+        if 'thurs' in tod.date_string:
+            daysofWeek['th']  = True
+        else:
+            daysofWeek['th'] = False
+        if 'fri' in tod.date_string:
+            daysofWeek['f']  = True
+        else:
+            daysofWeek['f'] = False
+        if 'sat' in tod.date_string:
+            daysofWeek['s']  = True
+        else:
+            daysofWeek['s'] = False
+        if 'weekday' in tod.date_string:
+            daysofWeek['m']  = True
+            daysofWeek['t'] = True
+            daysofWeek['w'] = True
+            daysofWeek['th'] = True
+            daysofWeek['f'] = True
+        if 'weekend' in tod.date_string:
+            daysofWeek['su'] = True
+            daysofWeek['s'] = True
+        new_hab['repeat'] = daysofWeek
+    else:
+        new_hab['frequency'] = 'daily'
+        todStart = str(parser.parse(tod.due_date).date())
+        new_hab['startDate'] = todStart
+        new_hab['everyX'] = 1 
+   
+    if tod.priority == 1:
         new_hab['priority'] = 2
-    elif tod_task.priority == 2:
+    elif tod.priority == 2:
         new_hab['priority'] = 1.5
-    elif tod_task.priority == 3:
+    elif tod.priority == 3:
         new_hab['priority'] = 1
-    elif tod_task.priority == 4:
+    elif tod.priority == 4:
         new_hab['priority'] = 1
-    return new_hab
+        
+    finished_hab = HabTask(new_hab)
+    return finished_hab
 
 def make_hab_from_tod(tod_task):
     new_hab = {'type':'todo'}
     new_hab['text'] = tod_task.name
     try:
         dateListed = list(tod_task.task_dict['due_date_utc'])
-        dueNow = parser.parse(dateListed).date()        
-     except:
+        dueNow = str(parser.parse(dateListed).date())
+    except:
         dueNow = ''
         
     new_hab['date'] = dueNow
@@ -295,12 +339,6 @@ def load_auth(configfile):
 
     # Return auth data as a dictionnary
     return rv
-
-def complete_hab_todo(hbt, task):
-    """
-    pushes a completed task to the api.
-    """
-    hbt.user.tasks(_id=task.id, _direction='up', _method='post')
     
 def check_matchDict(matchDict):
     """Troubleshooting"""

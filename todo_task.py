@@ -42,13 +42,22 @@ class TodTask(object):
         return self.__task_dict
 
     @property
-    #Get the task dictionary as is
+    #Is this task recurring?
     def recurring(self):
         if 'ev' in self.__task_dict['date_string']:
             return  'Yes'
         else:
             return 'No'
-        
+
+    @property
+    #Get the task dictionary as is
+    def recurring_type(self):
+        if reg in self.__task_dict['date_string']:
+            return  'daily'
+        else:
+            return 'weekly'
+
+
     @property
     #Get task ID
     def id(self):
