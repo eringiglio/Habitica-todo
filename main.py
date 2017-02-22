@@ -199,7 +199,8 @@ def make_hab_from_tod(tod_task):
         new_hab['priority'] = 1
     elif tod_task.priority == 4:
         new_hab['priority'] = 1
-    return new_hab
+    finished = HabTask(new_hab)
+    return finished
 
 def sync_hab2todo(hab, tod):
     habDict = hab.task_dict
@@ -233,6 +234,19 @@ def update_hab(hab):
     r = requests.put(headers=auth, url=url, data=data)
     return r    
 
+def complete_hab(hab):
+    import requests
+    import json
+    auth, hbt = get_started('auth.cfg')
+    url = 'https://habitica.com/api/v3/tasks/'
+    url += hab.task_dict['id']
+    url += '/score/up/'
+    hab_dict = hab.task_dict
+    hab_dict['completed'] = True
+    data = json.dumps(hab_dict)
+    r = requests.post(headers=auth, url=url, data=data)
+    return r    
+ 
 def get_uniqs(matchDict,tod_tasks,hab_tasks):
     tod_uniq = []
     hab_uniq = []
@@ -289,21 +303,41 @@ def add_hab_id(tid,hab):
     r = requests.put(headers=auth, url=url, data=data)
     return r
     
+def delete_hab(hab):
+    import requests
+    import json
+    auth, hbt = get_started('auth.cfg')
+    url = 'https://habitica.com/api/v3/tasks/'
+    url += hab.task_dict['id']
+    r = requests.delete(headers=auth, url=url)
+    return r
+    
 def update_tod_matchDict(tod_tasks, matchDict):
+    tid_list = []
     for tod in tod_tasks:
+        tid_list.append(tod.id)
         if tod.id in matchDict.keys():
             matchDict[tod.id]['tod'] = tod
-        else:
-            pass
+    for tid in matchDict.keys():
+        if tid not in tid_list:
+            matchDict.pop(tid)
+            
+    return matchDict
 
 def update_hab_matchDict(hab_tasks, matchDict):
+    from main import delete_hab
+    tid_list = []
     for hab in hab_tasks: 
         if 'alias' in hab.task_dict.keys():
             tid = int(hab.alias)
+            tid_list.append(tid)
             if tid in matchDict.keys():
-                matchDict[tid]['hab'] = hab
-        else:
-            pass
+                matchDict[tid]['hab'] = hab        
+    for tid in matchDict:
+        hab = matchDict[tid]['hab']
+        if tid not in tid_list:
+            delete_hab(hab)
+    return matchDict
 
 def load_auth(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
