@@ -6,7 +6,6 @@ Main.py overdue for an overhaul! Let's see.
 
 """Here's where we import stuff we need..."""
 import todoist
-from habitica import api 
 import requests
 import json
 from hab_task import HabTask
@@ -26,7 +25,7 @@ import re
 Version control, basic paths
 """
 
-VERSION = 'Habitica-todo version 1.0.0'
+VERSION = 'Habitica-todo version 2.0.0'
 TASK_VALUE_BASE = 0.9747  # http://habitica.wikia.com/wiki/Task_Value
 HABITICA_REQUEST_WAIT_TIME = 0.5  # time to pause between concurrent requests
 HABITICA_TASKS_PAGE = '/#/tasks'
@@ -102,16 +101,6 @@ def tod_login(configfile):
     #tod_user = todoist.login_with_api_token(rv)
     # Return auth data
     return tod_user
-
-def get_started(config):
-    """
-    Intended to get everything up and running for a first pass. This should run first. 
-    """
-    from main import load_auth
-    from habitica import api 
-    auth = load_auth(config)
-    hbt = api.Habitica(auth=auth)
-    return auth, hbt 
 
 def make_daily_from_tod(tod):
     import re
@@ -227,7 +216,7 @@ def sync_hab2todo(hab, tod):
 def update_hab(hab):
     import requests
     import json
-    auth, hbt = get_started('auth.cfg')
+    auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
     url += hab.task_dict['id']
     data = json.dumps(hab.task_dict)
@@ -237,7 +226,7 @@ def update_hab(hab):
 def complete_hab(hab):
     import requests
     import json
-    auth, hbt = get_started('auth.cfg')
+    auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
     url += hab.task_dict['id']
     url += '/score/up/'
@@ -268,14 +257,14 @@ def get_uniqs(matchDict,tod_tasks,hab_tasks):
     
     return tod_uniq, hab_uniq
 
-def write_hab_task(hbt,task): 
+def write_hab_task(task): 
     """
     writes a task, if inserted, to Habitica API as a todo. 
     To be added: functionality allowing you to specify things like difficulty
     """
     import requests
     import json
-    auth, hbt = get_started('auth.cfg')
+    auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/user/'
     hab = json.dumps(task)
     r = requests.post(headers=auth, url=url, data=hab)
@@ -284,7 +273,7 @@ def write_hab_task(hbt,task):
 def get_hab_fromID(tid):
     import requests
     import json
-    auth, hbt = get_started('auth.cfg')
+    auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
     url += str(tid)
     r = requests.get(headers=auth, url=url)
@@ -295,7 +284,7 @@ def get_hab_fromID(tid):
 def add_hab_id(tid,hab): 
     import requests
     import json
-    auth, hbt = get_started('auth.cfg')
+    auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
     hab.task_dict['alias'] = str(tid)
     url += hab.task_dict['id']
@@ -306,7 +295,7 @@ def add_hab_id(tid,hab):
 def delete_hab(hab):
     import requests
     import json
-    auth, hbt = get_started('auth.cfg')
+    auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
     url += hab.task_dict['id']
     r = requests.delete(headers=auth, url=url)
@@ -339,7 +328,7 @@ def update_hab_matchDict(hab_tasks, matchDict):
             delete_hab(hab)
     return matchDict
 
-def load_auth(configfile):
+def get_started(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
     logging.debug('Loading habitica auth data from %s' % configfile)

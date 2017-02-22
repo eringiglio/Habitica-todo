@@ -25,7 +25,7 @@ tod_projects = tod_user.projects.all()
 tod_inboxID = tod_projects[0].data['id']
 
 #Telling the site where the config stuff for Habitica can go and get a list of habitica tasks...
-auth, hbt = main.get_started('auth.cfg')  
+auth = main.get_started('auth.cfg')  
 
 #Getting all complete and incomplete habitica dailies and todos
 hab_tasks, r1, r2 = main.get_all_habtasks(auth)
@@ -91,7 +91,7 @@ for tod in tod_uniq:
     else:
         new_hab = main.make_hab_from_tod(tod)
     newDict = new_hab.task_dict
-    r = main.write_hab_task(hbt,newDict)
+    r = main.write_hab_task(newDict)
     if r.ok == False:
         matchDict[tid] = {}
         matchDict[tid]['tod'] = tod
