@@ -113,11 +113,12 @@ class TodTask(object):
     #is it due TODAY?
     def dueToday(self):
         from dateutil import parser
-        import datetime
+        from datetime import datetime
+        from datetime import timedelta
         import pytz
-        today = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+        today = datetime.utcnow().replace(tzinfo=pytz.UTC)
         try:
-            wobble = parser.parse(self.__task_dict['due_date_utc']) - datetime.timedelta(hours=6) #that datetime thing is pulling todoist's due dates to my time zone
+            wobble = parser.parse(self.__task_dict['due_date_utc']) - timedelta(hours=6) #that datetime thing is pulling todoist's due dates to my time zone
             dueDate = wobble.date()
         except:
             dueDate = ""

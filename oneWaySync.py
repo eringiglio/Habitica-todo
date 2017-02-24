@@ -21,6 +21,7 @@ from dateutil import parser
 
 #Here's where I'm putting my login stuff for Todoist.
 tod_user = main.tod_login('auth.cfg')
+tod_user.sync()
 tod_projects = tod_user.projects.all()
 tod_inboxID = tod_projects[0].data['id']
 
@@ -49,41 +50,47 @@ except:
 
 pkl_file.close()
 
-#We'll want to just... pull all the unmatched completed tasks out of our lists of tasks. Yeah? 
-tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
-
 #Also, update lists of tasks with matchDict file...
 matchDict = main.update_tod_matchDict(tod_tasks, matchDict)
 matchDict = main.update_hab_matchDict(hab_tasks, matchDict)
 
+hab_uniq = []
 #Check for matchDicts in existing habitica codes
 for hab in hab_tasks:
     try:
         tid = int(hab.alias)
     except:
         hab_uniq.append(hab)
-        pass
     matchDict[tid] = {}
     matchDict[tid]['hab'] = hab
-    tod = TodTask(tod_items.get_by_id(tid).data)
-    matchDict[tid]['tod'] = tod
-    matchDict[tid]['recurs'] = tod.recurring
+    try:
+        tod = TodTask(tod_items.get_by_id(tid).data)
+        matchDict[tid]['tod'] = tod
+        matchDict[tid]['recurs'] = tod.recurring
+    except:
+        matchDict.pop(tid)
 
+#We'll want to just... pull all the unmatched completed tasks out of our lists of tasks. Yeah? 
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
-r = []
+#Okay, so what if there are two matched tasks in the two uniq lists that really should be paired?
 for tod_task in tod_uniq:
     tid = tod_task.id
     if tid not in matchDict.keys():
         for hab_task in hab_uniq:
             if tod_task.name == hab_task.name:
-                matchDict[tid] = {}
-                matchDict[tid]['hab'] = hab_task
-                matchDict[tid]['tod'] = tod_task
-                r.append(main.add_hab_id(tid,hab_task))
+                r = main.add_hab_id(tid,hab_task)
+                if r.ok == False:
+                    print("Error updating hab %s! %s" % (hab.name,r.reason))
+                else:
+                    matchDict[tid] = {}
+                    matchDict[tid]['hab'] = hab_task
+                    matchDict[tid]['tod'] = tod_task
+
 
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
+#Here anything new in tod gets added to hab
 for tod in tod_uniq:
     tid = tod.id
     if tod.recurring == "Yes":
@@ -92,6 +99,8 @@ for tod in tod_uniq:
         new_hab = main.make_hab_from_tod(tod)
     newDict = new_hab.task_dict
     r = main.write_hab_task(newDict)
+    print("Added hab to %s!" % tod.name)
+    print(r)
     if r.ok == False:
         matchDict[tid] = {}
         matchDict[tid]['tod'] = tod
@@ -115,7 +124,7 @@ for tid in matchDict:
                 elif tod.dueToday == 'No':
                     r = main.complete_hab(hab)
                     print(hab.name)
-                    print(r.text)
+                    print(r)
                     print('fix it! complete the damn hab!')
                 else:
                     print("error in daily Hab")
@@ -140,13 +149,18 @@ for tid in matchDict:
             elif hab.completed == True:
                 fix_tod = tod_user.items.get_by_id(tid)
                 fix_tod.close()
+                print('completed tod %s' % tod.name)
             else: 
                 print("ERROR: check HAB %s" % tid)
         elif tod.complete == 1:
             if hab.completed == False:
                 r = main.complete_hab(hab)
-                print(r.text)
-                print(tid)
+                print(r)
+                if r.ok == True:
+                    print('Completed hab %s' % hab.name)
+                else:
+                    print('check hab ID %s' %tid)
+                    print(r.reason)
             elif hab.completed == True:
                 continue
             else: 

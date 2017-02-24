@@ -266,8 +266,8 @@ def write_hab_task(task):
     import json
     auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/user/'
-    hab = json.dumps(task)
-    r = requests.post(headers=auth, url=url, data=hab)
+#    hab = json.dumps(task)
+    r = requests.post(headers=auth, url=url, data=task)
     return r
 
 def get_hab_fromID(tid):
@@ -278,7 +278,7 @@ def get_hab_fromID(tid):
     url += str(tid)
     r = requests.get(headers=auth, url=url)
     task = r.json()
-    hab = HabTask(task['data'])
+    hab = HabTask(task)
     return hab
 
 def add_hab_id(tid,hab): 
@@ -372,7 +372,7 @@ def check_matchDict(matchDict):
             elif t.completed == True:
                 print("hab done, tod undone")
             else: 
-                print("something is wroooong check hab")
+                print("something is wroooong check hab %s" % t)
         elif matchDict[t].complete == 1:
             if t.completed == False:
                 print("hab undone, tod done")
@@ -380,6 +380,6 @@ def check_matchDict(matchDict):
             elif t.completed == True:
                 print("both done")
             else:
-                print("something is weird check hab")
+                print("something is weird check hab %s" % t)
         else:
-            print("something is weird check tod")
+            print("something is weird check tod %s" % t)
