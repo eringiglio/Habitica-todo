@@ -152,6 +152,7 @@ for tid in matchDict:
                 print('completed tod %s' % tod.name)
             else: 
                 print("ERROR: check HAB %s" % tid)
+                matchDict.pop(tid)
         elif tod.complete == 1:
             if hab.completed == False:
                 r = main.complete_hab(hab)
