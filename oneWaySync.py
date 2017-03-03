@@ -87,7 +87,6 @@ for tod_task in tod_uniq:
                     matchDict[tid]['hab'] = hab_task
                     matchDict[tid]['tod'] = tod_task
 
-
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 #Here anything new in tod gets added to hab
