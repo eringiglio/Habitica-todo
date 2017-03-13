@@ -15,19 +15,19 @@ b) tasks that you begin and complete from one service to the other will not tran
 
 INSTALLATION
 
-I'm working on getting this up on pip, which I have not yet done before. In the meantime, this is probably best installed by downloading the whole folder and running "python oneWaySync" in the command line. 
+If you're lazy and comfortable with python, you can run: 
 
-This should no longer require either pytodoist nor any existing habitica api program that needs to be installed ahead of time. 
+pip 
 
 TASK DIFFICULTY
 I originally felt that it would be good if task difficulty translated between tasks created on Todoist and 
 Habitica. Therefore, task difficulty should sync with the following code by default, as laid out in $PRIORITY_DOC:
 
 Todoist priority			Habitica difficulty
-p1							Hard
-p2							Medium
-p3							Easy
-p4							Trivial
+p1								Hard
+p2								Medium
+p3								Easy
+p4								Trivial
 
 If you'd like to change how the sync interprets difficulty or priority, please edit $PRIORITY_DOC. For example, my personal setup actually includes 
 translating Todoist p4 to Easy, rather than Trivial, because I find that Trivial yields so few rewards they aren't worth it to me. 

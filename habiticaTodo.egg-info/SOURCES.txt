@@ -1,0 +1,16 @@
+README.txt
+setup.py
+habiticaTodo/__init__.py
+habiticaTodo/castSpells.py
+habiticaTodo/dates.py
+habiticaTodo/hab_task.py
+habiticaTodo/main.py
+habiticaTodo/manaPull.py
+habiticaTodo/oneWaySync.py
+habiticaTodo/task.py
+habiticaTodo/todo_task.py
+habiticaTodo.egg-info/PKG-INFO
+habiticaTodo.egg-info/SOURCES.txt
+habiticaTodo.egg-info/dependency_links.txt
+habiticaTodo.egg-info/not-zip-safe
+habiticaTodo.egg-info/top_level.txt
