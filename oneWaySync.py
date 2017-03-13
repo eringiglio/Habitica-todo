@@ -5,7 +5,6 @@ One way sync. All the features of todoist-habitrpg; nothing newer or shinier.
 """
 
 #Python library imports - this will be functionalities I want to shorten
-from habitica import api #Note: you will want to get a version with API 3 support. At the time of this writing, check submitted pulls on the Github. 
 from os import path # will let me call files from a specific path
 import requests
 import scriptabit
@@ -54,24 +53,31 @@ pkl_file.close()
 matchDict = main.update_tod_matchDict(tod_tasks, matchDict)
 matchDict = main.update_hab_matchDict(hab_tasks, matchDict)
 
-hab_uniq = []
-#Check for matchDicts in existing habitica codes
-for hab in hab_tasks:
+#We'll want to just... pull all the unmatched completed tasks out of our lists of tasks. Yeah? 
+tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
+
+#Let's start with making a new matchDict via using our hab list, which should have aliases for everything.
+for hab in hab_uniq:
     try:
         tid = int(hab.alias)
     except:
-        hab_uniq.append(hab)
+        continue
     matchDict[tid] = {}
     matchDict[tid]['hab'] = hab
     try:
         tod = TodTask(tod_items.get_by_id(tid).data)
-        matchDict[tid]['tod'] = tod
-        matchDict[tid]['recurs'] = tod.recurring
     except:
-        matchDict.pop(tid)
-
-#We'll want to just... pull all the unmatched completed tasks out of our lists of tasks. Yeah? 
-tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
+        print(hab.name)
+        continue
+    matchDict[tid]['tod'] = tod
+    matchDict[tid]['recurs'] = tod.recurring
+    if matchDict[tid]['recurs'] == 'Yes':
+        if tod.dueToday == 'Yes':
+            matchDict[tid]['duelast'] = 'Yes'
+        else:
+            matchDict[tid]['duelast'] = 'No'
+    else:
+        matchDict[tid]['duelast'] = 'NA'
 
 #Okay, so what if there are two matched tasks in the two uniq lists that really should be paired?
 for tod_task in tod_uniq:
@@ -79,11 +85,11 @@ for tod_task in tod_uniq:
     if tid not in matchDict.keys():
         for hab_task in hab_uniq:
             if tod_task.name == hab_task.name:
+                matchDict[tid] = {}
                 r = main.add_hab_id(tid,hab_task)
                 if r.ok == False:
                     print("Error updating hab %s! %s" % (hab.name,r.reason))
                 else:
-                    matchDict[tid] = {}
                     matchDict[tid]['hab'] = hab_task
                     matchDict[tid]['tod'] = tod_task
 
@@ -101,15 +107,13 @@ for tod in tod_uniq:
     print("Added hab to %s!" % tod.name)
     print(r)
     if r.ok == False:
-        matchDict[tid] = {}
-        matchDict[tid]['tod'] = tod
-        new_hab = main.get_hab_fromID(tid)
-        matchDict[tid]['hab'] = new_hab
+        fin_hab = main.get_hab_fromID(tid)
+    else:
+        fin_hab = main.get_hab_fromID(tid)
     matchDict[tid] = {}
     matchDict[tid]['tod'] = tod
-    matchDict[tid]['hab'] = new_hab
+    matchDict[tid]['hab'] = fin_hab
 
-r = []
 #Check that anything which has recently been completed gets updated in hab
 for tid in matchDict:
     tod = matchDict[tid]['tod']
@@ -122,9 +126,8 @@ for tid in matchDict:
                     r = main.update_hab(matched_hab)
                 elif tod.dueToday == 'No':
                     r = main.complete_hab(hab)
-                    print(hab.name)
+                    print('Completed daily hab %s' % hab.name)
                     print(r)
-                    print('fix it! complete the damn hab!')
                 else:
                     print("error in daily Hab")
             elif hab.completed == True:
@@ -137,11 +140,26 @@ for tid in matchDict:
                 else:
                     print("error, check todoist daily")
         elif hab.dueToday == False:
-            continue
+            if tod.dueToday == 'Yes':
+                matchDict[tid]['duelast'] = 'Yes' #this is me keeping a record of recurring tods being completed or not for some of the complicated bits
+            if hab.completed == False:
+                if matchDict[tid]['duelast'] == 'Yes':
+                    if tod.dueToday == 'No':
+                        r = main.complete_hab(hab)
+                        if r.ok == True:
+                            print('Completed hab %s' % hab.name)
+                        else:
+                            print('check hab ID %s' %tid)
+                            print(r.reason)
+                        matchDict[tid]['duelast'] = 'No'
         else:
             print("error, check hab daily")
     elif tod.recurring == 'No':
         if tod.complete == 0: 
+            try:
+                hab.completed
+            except:
+                print(tid)
             if hab.completed == False:
                 matched_hab = main.sync_hab2todo(hab, tod)
                 r = main.update_hab(matched_hab)
@@ -151,7 +169,7 @@ for tid in matchDict:
                 print('completed tod %s' % tod.name)
             else: 
                 print("ERROR: check HAB %s" % tid)
-                matchDict.pop(tid)
+                #matchDict.pop(tid)
         elif tod.complete == 1:
             if hab.completed == False:
                 r = main.complete_hab(hab)
