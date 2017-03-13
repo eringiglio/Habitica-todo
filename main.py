@@ -247,13 +247,9 @@ def get_uniqs(matchDict,tod_tasks,hab_tasks):
                 tod_uniq.append(tod)
     
     for hab in hab_tasks:
-        try:
-            tid = int(hab.alias)
-        except:
-            tid = 0
-            
-            if tid not in matchDict.keys():
-                hab_uniq.append(hab)
+        tid = int(hab.alias)
+        if tid not in matchDict.keys():
+            hab_uniq.append(hab)
     
     return tod_uniq, hab_uniq
 
@@ -278,7 +274,7 @@ def get_hab_fromID(tid):
     url += str(tid)
     r = requests.get(headers=auth, url=url)
     task = r.json()
-    hab = HabTask(task)
+    hab = HabTask(task['data'])
     return hab
 
 def add_hab_id(tid,hab): 
@@ -322,10 +318,13 @@ def update_hab_matchDict(hab_tasks, matchDict):
             tid_list.append(tid)
             if tid in matchDict.keys():
                 matchDict[tid]['hab'] = hab        
+    expired_tids = []
     for tid in matchDict:
         hab = matchDict[tid]['hab']
         if tid not in tid_list:
-            delete_hab(hab)
+            expired_tids.append(tid)
+    for tid in expired_tids:
+        matchDict.pop(tid)
     return matchDict
 
 def get_started(configfile):
@@ -383,3 +382,4 @@ def check_matchDict(matchDict):
                 print("something is weird check hab %s" % t)
         else:
             print("something is weird check tod %s" % t)
+
