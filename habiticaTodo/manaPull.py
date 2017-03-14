@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from habitica import api 
 import requests
 import json
 from hab_task import HabTask

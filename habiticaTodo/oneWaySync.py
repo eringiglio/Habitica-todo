@@ -133,7 +133,7 @@ for tid in matchDict:
             elif hab.completed == True:
                 if tod.dueToday == 'Yes':
                     fix_tod = tod_user.items.get_by_id(tid)
-                    fix_tod.close()
+#                    fix_tod.close()
                     print('fix the tod! TID %s, NAMED %s' %(tid, tod.name))
                 elif tod.dueToday == 'No':
                     continue
