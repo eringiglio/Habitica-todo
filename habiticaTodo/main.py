@@ -209,12 +209,12 @@ def make_hab_from_tod(tod_task):
 def sync_hab2todo(hab, tod):
     from dates import parse_date_utc
     habDict = hab.task_dict
-    if tod.priority == 1:
-        habDict['priority'] = '2'
-    elif tod.priority == 2:
-        habDict['priority'] = '1.5'
+    if tod.priority == 4:
+        habDict['priority'] = 2
+    elif tod.priority == 3:
+        habDict['priority'] = 1.5
     else:
-        habDict['priority'] = '1'
+        habDict['priority'] = 1
     
     try:
         dueNow = tod.due.date()
