@@ -44,7 +44,9 @@ class TodTask(object):
     @property
     #Is this task recurring?
     def recurring(self):
-        if 'ev' in self.__task_dict['date_string']:
+        if self.__task_dict['date_string'] == None:
+            return 'No'
+        elif 'ev' in self.__task_dict['date_string']:
             return  'Yes'
         else:
             return 'No'
@@ -82,7 +84,20 @@ class TodTask(object):
     #priority of task
     def priority(self):
         return self.__task_dict['priority']
-    
+
+    @property
+    #difficulty: priority of task rendered to be compatible with habtask
+    def hardness(self):
+        diffID = self.__task_dict['priority']
+        if diffID == 4:
+            return "A"
+        elif diffID == 3:
+            return "B"
+        elif diffID == 2:
+            return "C"
+        else: 
+            return "C"
+
     @property
     #is task complete? 0 for no, 1 for yes
     def complete(self):
@@ -106,8 +121,11 @@ class TodTask(object):
     def due(self):
         from dateutil import parser
         import datetime
-        date = parser.parse(self.__task_dict['due_date_utc'])
-        return date
+        if self.__task_dict['due_date_utc'] != None:
+            date = parser.parse(self.__task_dict['due_date_utc'])
+            return date
+        else:
+            return ''
     
     @property
     #is it due TODAY?

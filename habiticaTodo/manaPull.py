@@ -56,7 +56,7 @@ def cast_all_mana(auth, skill):
     for cast in range(1,num_casts+1):
         r = cast_skill(auth, skill)
         r_list.append(r)
-        time.sleep(1)
+        time.sleep(1.2)
     
     url = 'https://habitica.com/api/v3/tasks/buffHabit/score/up'
     r = requests.post(headers=auth,url=url)

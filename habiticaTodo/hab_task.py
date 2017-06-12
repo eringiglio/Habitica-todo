@@ -12,6 +12,7 @@ from builtins import *
 from datetime import datetime
 from tzlocal import get_localzone
 import time
+import pytz
 
 from dates import parse_date_utc
 from task import CharacterAttribute, ChecklistItem, Difficulty, Task
@@ -55,6 +56,17 @@ class HabTask(object):
         """ Gets the internal task dictionary. """
         return self.__task_dict
 
+    @property
+    def due(self):
+        """ returns UTC due date """
+        from dateutil import parser
+        import datetime
+        if self.__task_dict['type'] == 'todo' and self.__task_dict['date'] != '':
+            date = parser.parse(self.__task_dict['date'])
+            return date
+        else:
+            return ''
+        
     @property
     #When will this recurring task next be due?
     def starting(self):
@@ -131,6 +143,20 @@ class HabTask(object):
         return self.__task_dict['_id']
 
     @property
+    #difficulty: priority of task rendered to be compatible with habtask
+    def hardness(self):
+        diffID = self.__task_dict['priority']
+        if diffID == 2:
+            return "A"
+        elif diffID == 1.5:
+            return "B"
+        elif diffID == 1:
+            return "C"
+        else: 
+            return "D"
+
+
+    @property
     def name(self):
         """ Task name """
         return self.__task_dict['text']
@@ -161,9 +187,9 @@ class HabTask(object):
         """This is intended to tell us if a given daily is due today or not."""
         from datetime import datetime
         from dateutil import parser
-
-        now = datetime.today().date()
-
+        local_tz = get_localzone()
+        raw_now = datetime.now()
+        now = raw_now.replace(tzinfo=pytz.utc).astimezone(local_tz).date()
         if self.__task_dict['type'] == 'daily':
             datestr = self.__task_dict['startDate']
             startDate = parser.parse(datestr).date()
@@ -259,10 +285,12 @@ class HabTask(object):
     @property
     def due_date(self):
         """ The due date if there is one, or None. """
+        from dates import parse_date_utc
         datestr = self.__task_dict.get('date', None)
         if datestr:
             return parse_date_utc(datestr, milliseconds=True)
-        return None
+        else:
+            return None
 
     @due_date.setter
     def due_date(self, due_date):

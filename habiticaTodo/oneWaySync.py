@@ -2,6 +2,7 @@
 
 """
 One way sync. All the features of todoist-habitrpg; nothing newer or shinier.
+Well. Okay, not *technically* one-way--it will sync two way for simple tasks/habitica to-dos, just not for recurring todo tasks or dailies. I'm workin' on that.
 """
 
 #Python library imports - this will be functionalities I want to shorten
@@ -28,7 +29,7 @@ tod_inboxID = tod_projects[0].data['id']
 auth = main.get_started('auth.cfg')  
 
 #Getting all complete and incomplete habitica dailies and todos
-hab_tasks, r1, r2 = main.get_all_habtasks(auth)
+hab_tasks, r1 = main.get_all_habtasks(auth)
 
 #Okay, now I need a list of todoist tasks. How do achieve that. 
 tod_tasks = []
@@ -40,14 +41,7 @@ for i in range(0, len(tod_tasklist)):
 """
 Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
 """
-
-pkl_file = open('oneWay_matchDict.pkl','rb')
-try: 
-    matchDict = pickle.load(pkl_file)
-except:
-    matchDict = {}
-
-pkl_file.close()
+matchDict = main.openMatchDict()
 
 #Also, update lists of tasks with matchDict file...
 matchDict = main.update_tod_matchDict(tod_tasks, matchDict)
@@ -56,43 +50,11 @@ matchDict = main.update_hab_matchDict(hab_tasks, matchDict)
 #We'll want to just... pull all the unmatched completed tasks out of our lists of tasks. Yeah? 
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
-#Let's start with making a new matchDict via using our hab list, which should have aliases for everything.
-for hab in hab_uniq:
-    try:
-        tid = int(hab.alias)
-    except:
-        continue
-    matchDict[tid] = {}
-    matchDict[tid]['hab'] = hab
-    try:
-        tod = TodTask(tod_items.get_by_id(tid).data)
-    except:
-        print(hab.name)
-        continue
-    matchDict[tid]['tod'] = tod
-    matchDict[tid]['recurs'] = tod.recurring
-    if matchDict[tid]['recurs'] == 'Yes':
-        if tod.dueToday == 'Yes':
-            matchDict[tid]['duelast'] = 'Yes'
-        else:
-            matchDict[tid]['duelast'] = 'No'
-    else:
-        matchDict[tid]['duelast'] = 'NA'
-
 #Okay, so what if there are two matched tasks in the two uniq lists that really should be paired?
-for tod_task in tod_uniq:
-    tid = tod_task.id
-    if tid not in matchDict.keys():
-        for hab_task in hab_uniq:
-            if tod_task.name == hab_task.name:
-                matchDict[tid] = {}
-                r = main.add_hab_id(tid,hab_task)
-                if r.ok == False:
-                    print("Error updating hab %s! %s" % (hab.name,r.reason))
-                else:
-                    matchDict[tid]['hab'] = hab_task
-                    matchDict[tid]['tod'] = tod_task
+matchDict = main.check_newMatches(matchDict,tod_uniq,hab_uniq)
 
+tod_uniq = []
+hab_uniq = []
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 #Here anything new in tod gets added to hab
@@ -113,6 +75,15 @@ for tod in tod_uniq:
     matchDict[tid] = {}
     matchDict[tid]['tod'] = tod
     matchDict[tid]['hab'] = fin_hab
+    matchDict[tid]['recurs'] = tod.recurring
+    if matchDict[tid]['recurs'] == 'Yes':
+        if tod.dueToday == 'Yes':
+            matchDict[tid]['duelast'] = 'Yes'
+        else:
+            matchDict[tid]['duelast'] = 'No'
+    else:
+        matchDict[tid]['duelast'] = 'NA'
+
 
 #Check that anything which has recently been completed gets updated in hab
 for tid in matchDict:
@@ -140,6 +111,10 @@ for tid in matchDict:
                 else:
                     print("error, check todoist daily")
         elif hab.dueToday == False:
+            try: 
+                matchDict[tid]['duelast']
+            except:
+                matchDict[tid]['duelast'] = 'No'
             if tod.dueToday == 'Yes':
                 matchDict[tid]['duelast'] = 'Yes' #this is me keeping a record of recurring tods being completed or not for some of the complicated bits
             if hab.completed == False:
@@ -154,6 +129,7 @@ for tid in matchDict:
                         matchDict[tid]['duelast'] = 'No'
         else:
             print("error, check hab daily")
+            print(hab.id)
     elif tod.recurring == 'No':
         if tod.complete == 0: 
             try:
@@ -185,17 +161,16 @@ for tid in matchDict:
                 print("ERROR: check HAB %s" % tid)
         else:
             print("ERROR: check TOD %s" % tid)
-    
     r = []
-    try: 
-        dueNow =  str(parser.parse(matchDict[tid]['tod'].due_date).date())
-    except:
-        continue
-    if dueNow != matchDict[tid]['hab'].date and matchDict[tid]['hab'].category == 'todo':
-        matchDict[tid]['hab'].task_dict['date'] = dueNow
-        r = main.update_hab(matchDict[tid]['hab']) 
+#    try: 
+#        dueNow =  str(parser.parse(matchDict[tid]['tod'].due_date).date())
+#    except:
+#        dueNow = ''
+#    if dueNow != matchDict[tid]['hab'].date and matchDict[tid]['hab'].category == 'todo':
+#        matchDict[tid]['hab'].task_dict['date'] = dueNow
+#        r = main.update_hab(matchDict[tid]['hab']) 
 
 pkl_out = open('oneWay_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
 pkl_out.close()
-tod_user.commit()
+#tod_user.commit()

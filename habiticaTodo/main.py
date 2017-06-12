@@ -16,6 +16,7 @@ try:
     import ConfigParser as configparser
 except:
     import configparser	
+
 from datetime import datetime
 from dateutil import parser
 import re
@@ -49,13 +50,13 @@ def get_all_habtasks(auth):
     hab_raw = response.json()
     hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_tasks. Hrm. Weeeelll, if I make a class elsewhere....
     
-    #In order to get any records of completed tasks, I need to make a separate request...
-    completedAuth = auth.copy()
-    completedAuth['type'] = 'completedTodos'
-    response2 = requests.get(url,headers=completedAuth)
-    completed_raw = response2.json()['data']
-    for i in completed_raw:
-        hab_tasklist.append(i)
+    # #In order to get any records of completed tasks, I need to make a separate request...
+    # completedAuth = auth.copy()
+    # completedAuth['type'] = 'completedTodos'
+    # response2 = requests.get(url,headers=completedAuth)
+    # completed_raw = response2.json()['data']
+    # for i in completed_raw:
+    #     hab_tasklist.append(i)
     
     #keeping records of all our tasks
     hab_tasks = [] 
@@ -69,7 +70,7 @@ def get_all_habtasks(auth):
             pass
         else:
             hab_tasks.append(item)
-    return(hab_tasks, response, response2)
+    return(hab_tasks, response)
     
 def tod_login(configfile):
     logging.debug('Loading todoist auth data from %s' % configfile)
@@ -158,17 +159,31 @@ def make_daily_from_tod(tod):
         new_hab['everyX'] = 1 
    
     if tod.priority == 1:
-        new_hab['priority'] = 2
+        new_hab['priority'] = '2'
     elif tod.priority == 2:
-        new_hab['priority'] = 1.5
+        new_hab['priority'] = '1.5'
     elif tod.priority == 3:
-        new_hab['priority'] = 1
+        new_hab['priority'] = '1'
     elif tod.priority == 4:
-        new_hab['priority'] = 1
+        new_hab['priority'] = '1'
         
     finished_hab = HabTask(new_hab)
     return finished_hab
 
+def make_tod_from_hab(hab):
+    project_id = tod_projects[0].data['id']
+    tod = {}
+    tod['content'] = hab.name
+    tod['due_date_utc'] = hab.date
+    if hab.priority == '2':
+        tod['priority'] = 1
+    elif hab.priority == '1.5': 
+        tod['priority'] == 2
+    elif hab.priority == '1': 
+        tod['priority'] == 3
+    else:
+        tod['priority'] == 4
+    
 def make_hab_from_tod(tod_task):
     new_hab = {'type':'todo'}
     new_hab['text'] = tod_task.name
@@ -181,34 +196,37 @@ def make_hab_from_tod(tod_task):
     new_hab['date'] = dueNow
     new_hab['alias'] = tod_task.id
     if tod_task.priority == 1:
-        new_hab['priority'] = 2
+        new_hab['priority'] = '2'
     elif tod_task.priority == 2:
-        new_hab['priority'] = 1.5
+        new_hab['priority'] = '1.5'
     elif tod_task.priority == 3:
-        new_hab['priority'] = 1
+        new_hab['priority'] = '1'
     elif tod_task.priority == 4:
-        new_hab['priority'] = 1
+        new_hab['priority'] = '1'
     finished = HabTask(new_hab)
     return finished
 
 def sync_hab2todo(hab, tod):
+    from dates import parse_date_utc
     habDict = hab.task_dict
     if tod.priority == 1:
-        habDict['priority'] = 2
+        habDict['priority'] = '2'
     elif tod.priority == 2:
-        habDict['priority'] = 1.5
+        habDict['priority'] = '1.5'
     else:
-        habDict['priority'] = 1
+        habDict['priority'] = '1'
     
     try:
-        date = list(tod_task.task_dict['due_date_utc'])
-        date_trim = date[0:15]
-        dueNow = ''.join(date_trim)
+        dueNow = tod.due.date()
     except:
         dueNow = ''
-    
-    if hab.date != dueNow:
-        habDict['date'] = dueNow
+    try:
+        dueOld = parse_date_utc(hab.date).date()
+    except:
+        dueOld = ''
+        
+    if dueOld != dueNow:
+        habDict['date'] = str(dueNow)
     
     new_hab = HabTask(habDict)
     return new_hab
@@ -216,12 +234,21 @@ def sync_hab2todo(hab, tod):
 def update_hab(hab):
     import requests
     import json
+    from datetime import datetime
+    from main import get_started
     auth = get_started('auth.cfg')
     url = 'https://habitica.com/api/v3/tasks/'
-    url += hab.task_dict['id']
-    data = json.dumps(hab.task_dict)
+    try:
+        tag = str(hab.task_dict['alias'])
+    except:
+        tag = hab.task_dict['id']
+    url += tag
+    wanted_keys = ['alias', 'text', 'priority','date']
+    data = {x : hab.task_dict[x] for x in wanted_keys if x in hab.task_dict}
     r = requests.put(headers=auth, url=url, data=data)
-    return r    
+    if r.ok == 'No':
+        print(r.text)
+    return r
 
 def complete_hab(hab):
     import requests
@@ -239,19 +266,63 @@ def complete_hab(hab):
 def get_uniqs(matchDict,tod_tasks,hab_tasks):
     tod_uniq = []
     hab_uniq = []
-    
+
     for tod in tod_tasks:
         tid = tod.id
         if tod.complete == 0:
             if tid not in matchDict.keys():
                 tod_uniq.append(tod)
-    
+
     for hab in hab_tasks:
-        tid = int(hab.alias)
+        try:
+            tid = int(hab.alias)
+        except: 
+            tid = hab.alias
         if tid not in matchDict.keys():
+            print(tid)
             hab_uniq.append(hab)
     
     return tod_uniq, hab_uniq
+
+def check_newMatches(matchDict,tod_uniq,hab_uniq):
+    from main import add_hab_id
+    matchesHab = []
+    matchesTod = []
+    for tod in tod_uniq:
+        tid = tod.id 
+        for hab in hab_uniq:
+            if tod.id == int(hab.alias):
+                matchDict[tid] = {}
+                matchDict[tid]['tod'] = tod
+                matchDict[tid]['hab'] = hab
+                matchDict[tid]['recurs'] = tod.recurring
+                if matchDict[tid]['recurs'] == 'Yes':
+                    if tod.dueToday == 'Yes':
+                        matchDict[tid]['duelast'] = 'Yes'
+                    else:
+                        matchDict[tid]['duelast'] = 'No'
+                else:
+                    matchDict[tid]['duelast'] = 'NA'
+                matchesTod.append(tod)
+                matchesHab.append(hab)
+    hab_uniqest = list(set(hab_uniq) - set(matchesHab))
+    tod_uniqest = list(set(tod_uniq) - set(matchesTod))
+
+    for tod_task in tod_uniqest:
+        tid = tod_task.id
+        if tid not in matchDict.keys():
+            for hab_task in hab_uniqest:
+                if tod_task.name == hab_task.name:
+                    matchDict[tid] = {}
+                    r = add_hab_id(tid,hab_task)
+                    if r.ok == False:
+                        print("Error updating hab %s! %s" % (hab.name,r.reason))
+                    else:
+                        matchDict[tid]['hab'] = hab_task
+                        matchDict[tid]['tod'] = tod_task
+
+    return matchDict
+
 
 def write_hab_task(task): 
     """
@@ -310,21 +381,75 @@ def update_tod_matchDict(tod_tasks, matchDict):
     return matchDict
 
 def update_hab_matchDict(hab_tasks, matchDict):
-    from main import delete_hab
+    from main import delete_hab 
+    from main import sync_hab2todo
+    from main import update_hab
+    from dates import parse_date_utc
+    hardness = []
     tid_list = []
+    expired_tids = []
+    aliasError = []
     for hab in hab_tasks: 
         if 'alias' in hab.task_dict.keys():
-            tid = int(hab.alias)
-            tid_list.append(tid)
+            try:
+                tid = int(hab.alias)
+                tid_list.append(tid)
+            except:
+                aliasError.append(hab)
             if tid in matchDict.keys():
-                matchDict[tid]['hab'] = hab        
-    expired_tids = []
+                try:
+                    date1 = parse_date_utc(hab.date).date()
+                except:
+                    date1 = ''
+                try: 
+                    date2 = parse_date_utc(matchDict[tid]['hab'].date).date()
+                except:
+                    date2 = ''
+                if date1 != date2:
+    #                    if the hab I see and the matchDict don't agree... sync to the todoist task
+                    print(date1)
+                    print(date2)
+                    newHab = sync_hab2todo(hab,matchDict[tid]['tod'])
+                    r = update_hab(newHab)
+                    print('Dates wrong; updated hab %s !' % hab.name)
+                    print(r)
+                if hab.hardness != matchDict[tid]['hab'].hardness:
+                    print("hardness mismatch!")
+                    hardness.append(tid)
+                    newHab = sync_hab2todo(hab,matchDict[tid]['tod'])
+                    r = update_hab(newHab)
+                    print(r)
+                    print('Updated hab %s !' % hab.name)
+                matchDict[tid]['hab'] = hab
+    '''
+    for hab in aliasError:
+        for tid in matchDict:
+            matchHab = matchDict[tid]['hab']
+            if hab.name == matchHab.name:
+                expired_tids.append(tid)
+    '''
     for tid in matchDict:
         hab = matchDict[tid]['hab']
         if tid not in tid_list:
             expired_tids.append(tid)
+
     for tid in expired_tids:
-        matchDict.pop(tid)
+        if tid not in matchDict.keys():
+            continue
+        else:
+            matchDict.pop(tid)
+
+    return matchDict
+
+def openMatchDict():
+    import pickle
+    pkl_file = open('oneWay_matchDict.pkl','rb')
+    try: 
+        matchDict = pickle.load(pkl_file)
+    except:
+        matchDict = {}
+
+    pkl_file.close()
     return matchDict
 
 def get_started(configfile):
@@ -383,3 +508,51 @@ def check_matchDict(matchDict):
         else:
             print("something is weird check tod %s" % t)
 
+def findTodActivity(tid):
+    """Only works for premium accounts, but can be helpful for running dailies."""
+    import requests
+    import json
+    data = [
+        ('token',tod_user.token),
+        ('object_type','item'),
+        ('object_id',tid)
+    ]
+    r = requests.post('https://todoist.com/API/v7/activity/get', data=data)
+    if r.ok == True:
+        history = json.loads(r.text)
+        return history
+    else:
+        print "Looks like the request didn't go through. Recheck it?"
+        return r.reason
+        
+def matchDates(matchDict):
+    '''Error/debugging script to match all hab dates with tod dates.'''
+    from main import sync_hab2todo
+    for tid in matchDict:
+        tod = matchDict[tid]['tod']
+        hab = matchDict[tid]['hab']
+        try:
+            hab_date = parse_date_utc(hab.date).date()
+        except:
+            hab_date = ''
+        
+        try:
+            tod_date = tod.due.date()
+        except:
+            tod_date = ''
+        
+        rList = []
+        if tod_date != hab_date:
+            print(tod.name)
+            newHab = sync_hab2todo(hab,tod)
+            r = update_hab(newHab)
+            matchDict[tid]['hab'] = newHab
+            rList.append(r,hab.name)
+
+def clean_matchDict(matchDict):
+    for tid in matchDict:
+        if 'recurs' not in matchDict[tid].keys():
+            matchDict[tid]['recurs'] = matchDict[tid]['tod'].recurring
+        hab = matchDict[tid]['hab']
+        tod = matchDict[tid]['tod']
+    return matchDict
