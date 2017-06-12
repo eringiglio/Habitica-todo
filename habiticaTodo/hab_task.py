@@ -191,40 +191,7 @@ class HabTask(object):
         raw_now = datetime.now()
         now = raw_now.replace(tzinfo=pytz.utc).astimezone(local_tz).date()
         if self.__task_dict['type'] == 'daily':
-            datestr = self.__task_dict['startDate']
-            startDate = parser.parse(datestr).date()
-            type = self.__task_dict['frequency']
-            
-            if startDate >= now:
-                return False
-            elif type == 'weekly':
-                
-                weekDay = now.weekday()
-                if weekDay == 0:
-                    return (self.__task_dict['repeat']['m'])
-                elif weekDay == 1:
-                    return (self.__task_dict['repeat']['t'])
-                elif weekDay == 2:
-                    return (self.__task_dict['repeat']['w'])
-                elif weekDay == 3:
-                    return (self.__task_dict['repeat']['th'])
-                elif weekDay == 4:
-                    return (self.__task_dict['repeat']['f'])
-                elif weekDay == 5:
-                    return (self.__task_dict['repeat']['s'])
-                elif weekDay == 6:
-                    return (self.__task_dict['repeat']['su'])
-                else:
-                    return "Error: what day is it" 
-            elif type == 'daily':
-                evXdays = self.__task_dict['everyX']
-                if evXdays > 1:
-                    daysSinceStart = now - startDate
-                    return (daysSinceStart.days % evXdays == 0)                    
-                else:
-                    return True                    
-            else:
-                return "Error: check your daily?"
+            return self.__task_dict['isDue']
         else:
             return 'TODO, NA'
 
