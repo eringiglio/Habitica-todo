@@ -560,3 +560,34 @@ def clean_matchDict(matchDict):
         hab = matchDict[tid]['hab']
         tod = matchDict[tid]['tod']
     return matchDict
+
+def syncHistories(matchDict):
+
+    """
+    I wanted to see if I could convince recurring habs and tods to sync based on history. 
+    Assuming both recur...
+    """
+    from dates import parse_date_utc
+    from dateutil import parser
+    from datetime import datetime
+    habsToUpdate = []
+    todsToUpdate = []
+    for tid in matchDict:
+        print(tid)
+        if matchDict[tid]['recurs'] == 'Yes':
+            hab = matchDict[tid]['hab']
+            tod = matchDict[tid]['tod']
+            habHistory = hab.history
+            todHistory = tod.history
+            lastTod = parser.parse(todHistory[0]['event_date']).date()
+            habLen = len(habHistory) - 1
+            lastHab = datetime.fromtimestamp(habHistory[habLen]['date']/1000).date()
+            lastNow = datetime.today().date()
+            if lastTod != lastHab:
+                if lastHab < lastTod:
+                    print("Tod recently")
+                    habsToUpdate.append(hab)
+                else:
+                    print("Hab recently")
+                    todsToUpdate.append(tod)
+    return habsToUpdate, todsToUpdate
