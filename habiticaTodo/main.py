@@ -450,6 +450,9 @@ def openMatchDict():
         matchDict = {}
 
     pkl_file.close()
+    for tid in matchDict:
+        if 'recurs' not in matchDict[tid].keys():
+            matchDict[tid]['recurs'] = tod.recurring
     return matchDict
 
 def get_started(configfile):
