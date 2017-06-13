@@ -68,7 +68,10 @@ class TodTask(object):
     @property
     #task name
     def history(self):
-        return self.__task_dict['in_history']
+        import main
+        tod_user = main.tod_login('auth.cfg')
+        activity = tod_user.activity.get(object_type='item', object_id = self.__task_dict['id'])
+        return activity
         
     @property
     #task name
