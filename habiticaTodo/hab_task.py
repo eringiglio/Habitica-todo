@@ -183,6 +183,13 @@ class HabTask(object):
             return self.__task_dict['startDate']
 
     @property
+    def history(self):
+        if self.__task_dict['type'] == 'daily':
+            return self.__task_dict['history']
+        else:
+            return "Sorry, this is a one-off todo!"
+
+    @property
     def dueToday(self):
         """This is intended to tell us if a given daily is due today or not."""
         from datetime import datetime
