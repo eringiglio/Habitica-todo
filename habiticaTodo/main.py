@@ -452,6 +452,7 @@ def openMatchDict():
     pkl_file.close()
     for tid in matchDict:
         if 'recurs' not in matchDict[tid].keys():
+            tod = matchDict[tid]['tod']
             matchDict[tid]['recurs'] = tod.recurring
     return matchDict
 
