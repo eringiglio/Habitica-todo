@@ -17,6 +17,7 @@ from hab_task import HabTask
 from todo_task import TodTask
 from datetime import datetime
 from dateutil import parser
+from dates import parse_date_utc
 
 #Here's where I'm putting my login stuff for Todoist.
 tod_user = main.tod_login('auth.cfg')
@@ -75,61 +76,15 @@ for tod in tod_uniq:
     matchDict[tid]['tod'] = tod
     matchDict[tid]['hab'] = fin_hab
     matchDict[tid]['recurs'] = tod.recurring
-    if matchDict[tid]['recurs'] == 'Yes':
-        if tod.dueToday == 'Yes':
-            matchDict[tid]['duelast'] = 'Yes'
-        else:
-            matchDict[tid]['duelast'] = 'No'
-    else:
-        matchDict[tid]['duelast'] = 'NA'
 
+#This routine updates the dailies/recurring tasks
+main.syncHistories(matchDict)
 
-#Check that anything which has recently been completed gets updated in hab
+#This one updates the one-offs:
 for tid in matchDict:
     tod = matchDict[tid]['tod']
     hab = matchDict[tid]['hab']
-    if tod.recurring == 'Yes':
-        if hab.dueToday == True:
-            if hab.completed == False:
-                if tod.dueToday == 'Yes':
-                    matched_hab = main.sync_hab2todo(hab, tod)
-                    r = main.update_hab(matched_hab)
-                elif tod.dueToday == 'No':
-                    r = main.complete_hab(hab)
-                    print('Completed daily hab %s' % hab.name)
-                    print(r)
-                else:
-                    print("error in daily Hab")
-            elif hab.completed == True:
-                if tod.dueToday == 'Yes':
-                    fix_tod = tod_user.items.get_by_id(tid)
-#                    fix_tod.close()
-                    print('fix the tod! TID %s, NAMED %s' %(tid, tod.name))
-                elif tod.dueToday == 'No':
-                    continue
-                else:
-                    print("error, check todoist daily")
-        elif hab.dueToday == False:
-            try: 
-                matchDict[tid]['duelast']
-            except:
-                matchDict[tid]['duelast'] = 'No'
-            if tod.dueToday == 'Yes':
-                matchDict[tid]['duelast'] = 'Yes' #this is me keeping a record of recurring tods being completed or not for some of the complicated bits
-            if hab.completed == False:
-                if matchDict[tid]['duelast'] == 'Yes':
-                    if tod.dueToday == 'No':
-                        r = main.complete_hab(hab)
-                        if r.ok == True:
-                            print('Completed hab %s' % hab.name)
-                        else:
-                            print('check hab ID %s' %tid)
-                            print(r.reason)
-                        matchDict[tid]['duelast'] = 'No'
-        else:
-            print("error, check hab daily")
-            print(hab.id)
-    elif tod.recurring == 'No':
+    if tod.recurring == 'No':
         if tod.complete == 0: 
             try:
                 hab.completed
@@ -155,21 +110,14 @@ for tid in matchDict:
                     print('check hab ID %s' %tid)
                     print(r.reason)
             elif hab.completed == True:
-                continue
+                matchDict.pop(tid)
             else: 
                 print("ERROR: check HAB %s" % tid)
         else:
             print("ERROR: check TOD %s" % tid)
     r = []
-#    try: 
-#        dueNow =  str(parser.parse(matchDict[tid]['tod'].due_date).date())
-#    except:
-#        dueNow = ''
-#    if dueNow != matchDict[tid]['hab'].date and matchDict[tid]['hab'].category == 'todo':
-#        matchDict[tid]['hab'].task_dict['date'] = dueNow
-#        r = main.update_hab(matchDict[tid]['hab']) 
 
 pkl_out = open('oneWay_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
 pkl_out.close()
-#tod_user.commit()
+tod_user.commit()

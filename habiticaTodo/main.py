@@ -50,14 +50,6 @@ def get_all_habtasks(auth):
     hab_raw = response.json()
     hab_tasklist = hab_raw['data'] #FINALLY getting something I can work with... this will be a list of dicts I want to turn into a list of objects with class hab_tasks. Hrm. Weeeelll, if I make a class elsewhere....
     
-    # #In order to get any records of completed tasks, I need to make a separate request...
-    # completedAuth = auth.copy()
-    # completedAuth['type'] = 'completedTodos'
-    # response2 = requests.get(url,headers=completedAuth)
-    # completed_raw = response2.json()['data']
-    # for i in completed_raw:
-    #     hab_tasklist.append(i)
-    
     #keeping records of all our tasks
     hab_tasks = [] 
     
@@ -570,10 +562,11 @@ def syncHistories(matchDict):
     from dates import parse_date_utc
     from dateutil import parser
     from datetime import datetime
-    habsToUpdate = []
-    todsToUpdate = []
+    from main import complete_hab
+    from main import tod_login
+    tod_user = tod_login('auth.cfg')
+    todList = {}
     for tid in matchDict:
-        print(tid)
         if matchDict[tid]['recurs'] == 'Yes':
             hab = matchDict[tid]['hab']
             tod = matchDict[tid]['tod']
@@ -585,9 +578,15 @@ def syncHistories(matchDict):
             lastNow = datetime.today().date()
             if lastTod != lastHab:
                 if lastHab < lastTod:
-                    print("Tod recently")
-                    habsToUpdate.append(hab)
+                    print("Updating daily hab %s to match tod" % tid)
+                    complete_hab(hab)
                 else:
-                    print("Hab recently")
-                    todsToUpdate.append(tod)
-    return habsToUpdate, todsToUpdate
+                    print(tid)
+                    todList[tod] = tod.due
+                    print(tod.name)
+                    print(lastHab)
+                    print(lastTod)
+                    print("Updating daily tod %s to match hab" % tid)
+                    fix_tod = tod_user.items.get_by_id(tid)
+                    fix_tod.close() #this to be uncommented in a week or so
+    tod_user.commit()
