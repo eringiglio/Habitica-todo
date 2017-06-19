@@ -70,7 +70,7 @@ class TodTask(object):
     def history(self):
         import main
         tod_user = main.tod_login('auth.cfg')
-        activity = tod_user.activity.get(object_type='item', object_id = self.__task_dict['id'])
+        activity = tod_user.activity.get(object_type='item', object_id = self.__task_dict['id'], event_type='completed')
         return activity
         
     @property

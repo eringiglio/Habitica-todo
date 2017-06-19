@@ -16,6 +16,7 @@ import json
 from hab_task import HabTask
 from todo_task import TodTask
 from datetime import datetime
+from datetime import timedelta
 from dateutil import parser
 from dates import parse_date_utc
 
@@ -41,7 +42,7 @@ for i in range(0, len(tod_tasklist)):
 """
 Okay, I want to write a little script that checks whether or not a task is there or not and, if not, ports it. 	
 """
-matchDict = main.openMatchDict()
+matchDict = main.openMatchDictTwo()
 
 #Also, update lists of tasks with matchDict file...
 matchDict = main.update_tod_matchDict(tod_tasks, matchDict)
@@ -53,8 +54,6 @@ tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 #Okay, so what if there are two matched tasks in the two uniq lists that really should be paired?
 matchDict = main.check_newMatches(matchDict,tod_uniq,hab_uniq)
 
-tod_uniq = []
-hab_uniq = []
 tod_uniq, hab_uniq = main.get_uniqs(matchDict, tod_tasks, hab_tasks)
 
 #Here anything new in tod gets added to hab
@@ -78,9 +77,10 @@ for tod in tod_uniq:
     matchDict[tid]['recurs'] = tod.recurring
 
 #This routine updates the dailies/recurring tasks
-main.syncHistories(matchDict)
+matchDict = main.syncHistories(matchDict)
 
 #This one updates the one-offs:
+expired_tids = []
 for tid in matchDict:
     tod = matchDict[tid]['tod']
     hab = matchDict[tid]['hab']
@@ -99,7 +99,6 @@ for tid in matchDict:
                 print('completed tod %s' % tod.name)
             else: 
                 print("ERROR: check HAB %s" % tid)
-                #matchDict.pop(tid)
         elif tod.complete == 1:
             if hab.completed == False:
                 r = main.complete_hab(hab)
@@ -110,14 +109,17 @@ for tid in matchDict:
                     print('check hab ID %s' %tid)
                     print(r.reason)
             elif hab.completed == True:
-                matchDict.pop(tid)
+                expired_tids.append(tid)
             else: 
                 print("ERROR: check HAB %s" % tid)
         else:
             print("ERROR: check TOD %s" % tid)
     r = []
 
-pkl_out = open('oneWay_matchDict.pkl','w')
+for tid in expired_tids:
+    matchDict.pop(tid)
+
+pkl_out = open('twoWay_matchDict.pkl','w')
 pickle.dump(matchDict, pkl_out)
 pkl_out.close()
 tod_user.commit()

@@ -199,6 +199,47 @@ def make_hab_from_tod(tod_task):
     return finished
 
 def sync_hab2todo(hab, tod):
+    if hab.category == 'daily':
+        new_hab = sync_hab2todo_daily(hab,tod)
+        return new_hab
+    elif hab.category == 'todo':
+        new_hab = sync_hab2todo_todo(hab,tod)
+        return new_hab
+    else: 
+        print("Error! Hab of incorrect type!")
+
+def sync_hab2todo_daily(hab, tod):
+    from dates import parse_date_utc
+    from datetime import datetime
+    from datetime import timedelta
+    import pytz
+    habDict = hab.task_dict
+    if tod.priority == 4:
+        habDict['priority'] = 2
+    elif tod.priority == 3:
+        habDict['priority'] = 1.5
+    else:
+        habDict['priority'] = 1
+
+    try:
+        dueNow = tod.due.date()
+    except:
+        dueNow = ''
+    try:
+        dueOld = parse_date_utc(hab.task_dict['startDate']).date() #+ timedelta(days=1)
+    except:
+        dueOld = ''
+
+    now = datetime.now(pytz.utc).date()
+        
+    if dueOld != (dueNow - timedelta(days=1)) and now < dueNow is True:
+        habDict['startDate'] = str(dueNow - timedelta(days=1))
+
+    newHab = HabTask(habDict)
+
+    return newHab
+
+def sync_hab2todo_todo(hab, tod): 
     from dates import parse_date_utc
     habDict = hab.task_dict
     if tod.priority == 4:
@@ -288,13 +329,6 @@ def check_newMatches(matchDict,tod_uniq,hab_uniq):
                 matchDict[tid]['tod'] = tod
                 matchDict[tid]['hab'] = hab
                 matchDict[tid]['recurs'] = tod.recurring
-                if matchDict[tid]['recurs'] == 'Yes':
-                    if tod.dueToday == 'Yes':
-                        matchDict[tid]['duelast'] = 'Yes'
-                    else:
-                        matchDict[tid]['duelast'] = 'No'
-                else:
-                    matchDict[tid]['duelast'] = 'NA'
                 matchesTod.append(tod)
                 matchesHab.append(hab)
     hab_uniqest = list(set(hab_uniq) - set(matchesHab))
@@ -448,6 +482,22 @@ def openMatchDict():
             matchDict[tid]['recurs'] = tod.recurring
     return matchDict
 
+def openMatchDictTwo():
+    import pickle
+    pkl_file = open('twoWay_matchDict.pkl','rb')
+    try: 
+        matchDict = pickle.load(pkl_file)
+    except:
+        matchDict = {}
+
+    pkl_file.close()
+    for tid in matchDict:
+        if 'recurs' not in matchDict[tid].keys():
+            tod = matchDict[tid]['tod']
+            matchDict[tid]['recurs'] = tod.recurring
+    return matchDict
+
+
 def get_started(configfile):
     """Get Habitica authentication data from the AUTH_CONF file."""
 
@@ -503,23 +553,6 @@ def check_matchDict(matchDict):
                 print("something is weird check hab %s" % t)
         else:
             print("something is weird check tod %s" % t)
-
-def findTodActivity(tid):
-    """Only works for premium accounts, but can be helpful for running dailies."""
-    import requests
-    import json
-    data = [
-        ('token',tod_user.token),
-        ('object_type','item'),
-        ('object_id',tid)
-    ]
-    r = requests.post('https://todoist.com/API/v7/activity/get', data=data)
-    if r.ok == True:
-        history = json.loads(r.text)
-        return history
-    else:
-        print "Looks like the request didn't go through. Recheck it?"
-        return r.reason
         
 def matchDates(matchDict):
     '''Error/debugging script to match all hab dates with tod dates.'''
@@ -562,6 +595,7 @@ def syncHistories(matchDict):
     from dates import parse_date_utc
     from dateutil import parser
     from datetime import datetime
+    from datetime import timedelta
     from main import complete_hab
     from main import tod_login
     tod_user = tod_login('auth.cfg')
@@ -574,19 +608,24 @@ def syncHistories(matchDict):
             todHistory = tod.history
             lastTod = parser.parse(todHistory[0]['event_date']).date()
             habLen = len(habHistory) - 1
-            lastHab = datetime.fromtimestamp(habHistory[habLen]['date']/1000).date()
+            lastHab = datetime.fromtimestamp(habHistory[habLen]['date']/1000).date() - timedelta(days=1)
             lastNow = datetime.today().date()
             if lastTod != lastHab:
-                if lastHab < lastTod:
-                    print("Updating daily hab %s to match tod" % tid)
-                    complete_hab(hab)
+                if lastHab < lastTod and hab.dueToday == True:
+                    print("Updating daily hab %s to match tod" % tod.name)
+                    r = complete_hab(hab)
+                    print(r)
+                elif lastTod < lastHab and hab.dueToday == False:
+                    if lastTod < lastNow == False:
+                        print("Updating daily tod %s to match hab" % tod.name)
+                        fix_tod = tod_user.items.get_by_id(tid)
+                        fix_tod.close() #this to be uncommented in a week or so
+                    else:
+                        print("Hey, tod %s looks like it's getting pretty late. Think about tackling that one?" % tod.name)
                 else:
-                    print(tid)
-                    todList[tod] = tod.due
+                    print("This one doesn't apply, right?")
                     print(tod.name)
                     print(lastHab)
                     print(lastTod)
-                    print("Updating daily tod %s to match hab" % tid)
-                    fix_tod = tod_user.items.get_by_id(tid)
-                    fix_tod.close() #this to be uncommented in a week or so
     tod_user.commit()
+    return matchDict
