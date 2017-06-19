@@ -31,7 +31,32 @@ def get_user_mana(auth):
     userData = get_user_info(auth)
     mana = userData['stats']['mp']
     return mana
-    
+
+def assgn_user_attr_pts(auth):
+    '''
+    This is totally a me thing: I like to assign my points in a ratio of 2 str, 1 int, 1 per. So I'm writing a routine that will automatically do that for me.
+    '''
+    from manaPull import get_user_info
+    import json
+    url = 'https://habitica.com/api/v3/user/allocate'
+    userData = get_user_info(auth)
+    stats = userData['stats']
+    if stats['points'] <= 1:
+        strength = stats['str']
+        perception = stats['per']
+        intelligence = stats['int']
+        constitution = stats['con']
+        total = strength + perception + intelligence + constitution + stats['points']
+        if total % 2 == 0:
+            data = json.dumps({"stat" : "str"})
+        elif (total - 1) % 4 == 0: 
+            data = json.dumps({"stat" : "int"})
+        else: 
+            data = json.dumps({"stat" : "per"})
+        r = requests.post(headers=auth,url=url,data=data)
+        return r
+
+
 def cast_skill(auth, skill):
     import requests
     import json

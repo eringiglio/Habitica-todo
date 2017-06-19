@@ -9,3 +9,5 @@ import manaPull
 auth = main.get_started('auth.cfg')
 
 manaPull.cast_all_mana(auth,'valorousPresence')
+
+manaPull.assgn_user_attr_pts(auth)
