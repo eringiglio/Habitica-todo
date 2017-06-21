@@ -64,8 +64,8 @@ class HabTask(object):
         if self.__task_dict['type'] == 'todo' and self.__task_dict['date'] != '':
             date = parser.parse(self.__task_dict['date'])
             return date
-        elif self.__task_dict['type'] == 'daily' and self.__task_dict['startDate'] != '':
-            date = parser.parse(self.__task_dict['startDate'])
+        elif self.__task_dict['type'] == 'daily' and self.__task_dict['nextDue'] != '':
+            date = parser.parse(self.__task_dict['nextDue'][0])
             return date 
         else:
             return ''

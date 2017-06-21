@@ -615,17 +615,24 @@ def syncHistories(matchDict):
                     print("Updating daily hab %s to match tod" % tod.name)
                     r = complete_hab(hab)
                     print(r)
-                elif lastTod < lastHab and hab.dueToday == False:
+                elif lastTod < lastHab: # and hab.dueToday == False:
                     if lastTod < lastNow == False:
                         print("Updating daily tod %s to match hab" % tod.name)
-                        fix_tod = tod_user.items.get_by_id(tid)
-                        fix_tod.close() #this to be uncommented in a week or so
-                    else:
+                        #fix_tod = tod_user.items.get_by_id(tid)
+                        #fix_tod.close() #this to be uncommented in a week or so
+                        print(lastTod)
+                        print(lastHab)
+                        print(lastNow)
+                    elif hab.due.date() < lastNow:
                         print("Hey, tod %s looks like it's getting pretty late. Think about tackling that one?" % tod.name)
+                        print(lastTod)
+                        print(lastHab)
+                        print(hab.due)
                 else:
                     print("This one doesn't apply, right?")
                     print(tod.name)
-                    print(lastHab)
                     print(lastTod)
+                    print(lastHab)
+                    print(hab.due)
     tod_user.commit()
     return matchDict
