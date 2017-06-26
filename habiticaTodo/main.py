@@ -221,19 +221,10 @@ def sync_hab2todo_daily(hab, tod):
     else:
         habDict['priority'] = 1
 
-    try:
-        dueNow = tod.due.date()
-    except:
-        dueNow = ''
-    try:
-        dueOld = parse_date_utc(hab.task_dict['startDate']).date() #+ timedelta(days=1)
-    except:
-        dueOld = ''
-
-    now = datetime.now(pytz.utc).date()
+    now = datetime.now().replace(tzinfo=pytz.utc).date()
         
-    if dueOld != (dueNow - timedelta(days=1)) and now < dueNow is True:
-        habDict['startDate'] = str(dueNow - timedelta(days=1))
+    if hab.due.date() != (tod.due.date() - timedelta(days=1)):
+        habDict['startDate'] = str(tod.due.date() - timedelta(days=1))
 
     newHab = HabTask(habDict)
 
@@ -424,21 +415,23 @@ def update_hab_matchDict(hab_tasks, matchDict):
                 aliasError.append(hab)
             if tid in matchDict.keys():
                 try:
-                    date1 = parse_date_utc(hab.date).date()
+                    date1 = hab.due.date()
                 except:
                     date1 = ''
                 try: 
-                    date2 = parse_date_utc(matchDict[tid]['hab'].date).date()
+                    date2 = matchDict[tid]['hab'].due.date()
                 except:
                     date2 = ''
-                if date1 != date2:
-    #                    if the hab I see and the matchDict don't agree... sync to the todoist task
+
+                if date1 != date2 and matchDict[tid]['recurs'] == 'No':
+    #if the hab I see and the matchDict don't agree... sync to the todoist task
                     print(date1)
                     print(date2)
                     newHab = sync_hab2todo(hab,matchDict[tid]['tod'])
                     r = update_hab(newHab)
                     print('Dates wrong; updated hab %s !' % hab.name)
                     print(r)
+
                 if hab.hardness != matchDict[tid]['hab'].hardness:
                     print("hardness mismatch!")
                     hardness.append(tid)
@@ -446,6 +439,7 @@ def update_hab_matchDict(hab_tasks, matchDict):
                     r = update_hab(newHab)
                     print(r)
                     print('Updated hab %s !' % hab.name)
+
                 matchDict[tid]['hab'] = hab
     '''
     for hab in aliasError:
@@ -596,7 +590,7 @@ def syncHistories(matchDict):
     from dateutil import parser
     from datetime import datetime
     from datetime import timedelta
-    from main import complete_hab
+    from main import complete_hab, update_hab
     from main import tod_login
     tod_user = tod_login('auth.cfg')
     todList = {}
@@ -610,6 +604,9 @@ def syncHistories(matchDict):
             habLen = len(habHistory) - 1
             lastHab = datetime.fromtimestamp(habHistory[habLen]['date']/1000).date() - timedelta(days=1)
             lastNow = datetime.today().date()
+            if lastHab > hab.due.date(): 
+                newHab = sync_hab2todo(hab, tod)
+                r = update_hab(newHab)
             if lastTod != lastHab:
                 if lastHab < lastTod and hab.dueToday == True:
                     print("Updating daily hab %s to match tod" % tod.name)

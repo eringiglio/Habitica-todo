@@ -60,23 +60,29 @@ class HabTask(object):
     def due(self):
         """ returns UTC due date """
         from dateutil import parser
-        import datetime
+        from datetime import datetime
         if self.__task_dict['type'] == 'todo' and self.__task_dict['date'] != '':
             date = parser.parse(self.__task_dict['date'])
             return date
-        elif self.__task_dict['type'] == 'daily' and self.__task_dict['nextDue'] != '':
-            date = parser.parse(self.__task_dict['nextDue'][0])
+        elif self.__task_dict['type'] == 'daily': 
+            if self.__task_dict['isDue'] == True:
+                date = datetime.now().replace(tzinfo=pytz.utc,hour=0,minute=0,second=0,microsecond=0)
+            elif self.__task_dict['nextDue'] != '':
+                date = parser.parse(self.__task_dict['nextDue'][0])
             return date 
         else:
             return ''
         
     @property
-    #When will this recurring task next be due?
+    #When did the daily start running? (That is, is it active now?)
     def starting(self):
+        from dateutil import parser
+        import datetime
         if self.__task_dict['type'] == 'daily':
-            start = self.__task_dict['startDate']
+            start = parser.parse(self.__task_dictself.__task_dict['startDate'])
         else:
             start = ''
+        return start 
     
     @starting.setter
     def starting(self, starting):
@@ -195,11 +201,6 @@ class HabTask(object):
     @property
     def dueToday(self):
         """This is intended to tell us if a given daily is due today or not."""
-        from datetime import datetime
-        from dateutil import parser
-        local_tz = get_localzone()
-        raw_now = datetime.now()
-        now = raw_now.replace(tzinfo=pytz.utc).astimezone(local_tz).date()
         if self.__task_dict['type'] == 'daily':
             return self.__task_dict['isDue']
         else:
