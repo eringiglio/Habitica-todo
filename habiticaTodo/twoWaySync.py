@@ -76,6 +76,24 @@ for tod in tod_uniq:
     matchDict[tid]['hab'] = fin_hab
     matchDict[tid]['recurs'] = tod.recurring
 
+#And we do the same with habs unique to tods...
+for hab in hab_uniq:
+    try: 
+        tid = int(hab.alias)
+    except:
+        tid = 'NEW'
+    if tid == 'NEW':
+        newTod = main.make_tod_from_hab
+        tod_items.add(newTod)
+    else:
+        cruft = tod_user.activity.get(object_type='item',object_id=tid)[0]['event_type']
+        if cruft == 'deleted':
+            r = main.delete_hab(hab)
+            print(r)
+        else:
+            print("ERROR. PLEASE CHECK HAB WITH TID %s" % tid)
+
+
 #This routine updates the dailies/recurring tasks
 matchDict = main.syncHistories(matchDict)
 
@@ -114,7 +132,6 @@ for tid in matchDict:
                 print("ERROR: check HAB %s" % tid)
         else:
             print("ERROR: check TOD %s" % tid)
-    r = []
 
 for tid in expired_tids:
     matchDict.pop(tid)
