@@ -700,7 +700,7 @@ def update_tod_matchDict(tod_tasks, matchDict):
         tid_list.append(tod.id)
         if tod.id in matchDict.keys():
             matchDict[tod.id]['tod'] = tod
-    for tid in matchDict.keys():
+    for tid in list(matchDict):
         if tid not in tid_list:
             matchDict.pop(tid)
             
