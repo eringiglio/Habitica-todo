@@ -136,7 +136,8 @@ for tid in matchDict:
 for tid in expired_tids:
     matchDict.pop(tid)
 
-pkl_out = open('twoWay_matchDict.pkl','w')
-pickle.dump(matchDict, pkl_out)
-pkl_out.close()
+pkl_file = open('twoWay_matchDict.pkl','wb')
+pkl_out - pickle.Pickler(pkl_file, -1)
+pkl_out.dump(matchDict)
+pkl_file.close()
 tod_user.commit()
