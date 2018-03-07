@@ -416,8 +416,9 @@ def matchDates(matchDict):
 def openMatchDict():
     import pickle
     pkl_file = open('oneWay_matchDict.pkl','rb')
+    pkl_load = pickle.Unpickler(pkl_file)
     try: 
-        matchDict = pickle.load(pkl_file)
+        matchDict = pkl_load.load()
     except:
         matchDict = {}
 
@@ -431,8 +432,9 @@ def openMatchDict():
 def openMatchDictTwo():
     import pickle
     pkl_file = open('twoWay_matchDict.pkl','rb')
+    pkl_load = pickle.Unpickler(pkl_file)
     try: 
-        matchDict = pickle.load(pkl_file)
+        matchDict = pkl_load.load()
     except:
         matchDict = {}
 
