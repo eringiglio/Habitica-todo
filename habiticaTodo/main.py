@@ -138,7 +138,7 @@ def check_newMatches(matchDict,tod_uniq,hab_uniq):
     for tod in tod_uniq:
         tid = tod.id 
         for hab in hab_uniq:
-            if tod.id == int(hab.alias):
+            if tod.id == hab.alias:
                 matchDict[tid] = {}
                 matchDict[tid]['tod'] = tod
                 matchDict[tid]['hab'] = hab
@@ -277,10 +277,7 @@ def get_uniqs(matchDict,tod_tasks,hab_tasks):
                 tod_uniq.append(tod)
 
     for hab in hab_tasks:
-        try:
-            tid = int(hab.alias)
-        except: 
-            tid = hab.alias
+        tid = hab.alias
         if tid not in matchDict.keys():
             print(tid)
             hab_uniq.append(hab)
