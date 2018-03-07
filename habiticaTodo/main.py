@@ -415,14 +415,14 @@ def matchDates(matchDict):
 
 def openMatchDict():
     import pickle
-    pkl_file = open('oneWay_matchDict.pkl','rb')
-    pkl_load = pickle.Unpickler(pkl_file)
     try: 
+        pkl_file = open('oneWay_matchDict.pkl','rb')
+        pkl_load = pickle.Unpickler(pkl_file)
         matchDict = pkl_load.load()
+        pkl_file.close()
     except:
         matchDict = {}
 
-    pkl_file.close()
     for tid in matchDict:
         if 'recurs' not in matchDict[tid].keys():
             tod = matchDict[tid]['tod']
@@ -431,14 +431,14 @@ def openMatchDict():
 
 def openMatchDictTwo():
     import pickle
-    pkl_file = open('twoWay_matchDict.pkl','rb')
-    pkl_load = pickle.Unpickler(pkl_file)
     try: 
+        pkl_file = open('twoWay_matchDict.pkl','rb')
+        pkl_load = pickle.Unpickler(pkl_file)
         matchDict = pkl_load.load()
+        pkl_file.close()
     except:
         matchDict = {}
 
-    pkl_file.close()
     for tid in matchDict:
         if 'recurs' not in matchDict[tid].keys():
             tod = matchDict[tid]['tod']
