@@ -169,8 +169,8 @@ for tid in matchDict:
 #    if dueNow != matchDict[tid]['hab'].date and matchDict[tid]['hab'].category == 'todo':
 #        matchDict[tid]['hab'].task_dict['date'] = dueNow
 #        r = main.update_hab(matchDict[tid]['hab']) 
-
-pkl_out = open('oneWay_matchDict.pkl','w')
-pickle.dump(matchDict, pkl_out)
-pkl_out.close()
+pkl_file = open('oneWay_matchDict.pkl','wb')
+pkl_out = pickle.Pickler(pkl_file, -1)
+pkl_out.dump(matchDict)
+pkl_file.close()
 #tod_user.commit()

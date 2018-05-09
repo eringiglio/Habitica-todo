@@ -178,7 +178,10 @@ class HabTask(object):
     @property
     def alias(self):
         """ Task name """
-        return self.__task_dict['alias']
+        try:
+            return self.__task_dict['alias']
+        except:
+            return ''
 
     @property
     def date(self):

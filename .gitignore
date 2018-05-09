@@ -1,0 +1,4 @@
+*.pyc
+auth.cfg
+*.pkl
+build/

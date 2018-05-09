@@ -138,7 +138,7 @@ def check_newMatches(matchDict,tod_uniq,hab_uniq):
     for tod in tod_uniq:
         tid = tod.id 
         for hab in hab_uniq:
-            if tod.id == int(hab.alias):
+            if tod.id == hab.alias:
                 matchDict[tid] = {}
                 matchDict[tid]['tod'] = tod
                 matchDict[tid]['hab'] = hab
@@ -277,10 +277,7 @@ def get_uniqs(matchDict,tod_tasks,hab_tasks):
                 tod_uniq.append(tod)
 
     for hab in hab_tasks:
-        try:
-            tid = int(hab.alias)
-        except: 
-            tid = hab.alias
+        tid = hab.alias
         if tid not in matchDict.keys():
             print(tid)
             hab_uniq.append(hab)
@@ -418,13 +415,14 @@ def matchDates(matchDict):
 
 def openMatchDict():
     import pickle
-    pkl_file = open('oneWay_matchDict.pkl','rb')
     try: 
-        matchDict = pickle.load(pkl_file)
+        pkl_file = open('oneWay_matchDict.pkl','rb')
+        pkl_load = pickle.Unpickler(pkl_file)
+        matchDict = pkl_load.load()
+        pkl_file.close()
     except:
         matchDict = {}
 
-    pkl_file.close()
     for tid in matchDict:
         if 'recurs' not in matchDict[tid].keys():
             tod = matchDict[tid]['tod']
@@ -433,13 +431,14 @@ def openMatchDict():
 
 def openMatchDictTwo():
     import pickle
-    pkl_file = open('twoWay_matchDict.pkl','rb')
     try: 
-        matchDict = pickle.load(pkl_file)
+        pkl_file = open('twoWay_matchDict.pkl','rb')
+        pkl_load = pickle.Unpickler(pkl_file)
+        matchDict = pkl_load.load()
+        pkl_file.close()
     except:
         matchDict = {}
 
-    pkl_file.close()
     for tid in matchDict:
         if 'recurs' not in matchDict[tid].keys():
             tod = matchDict[tid]['tod']
@@ -700,7 +699,7 @@ def update_tod_matchDict(tod_tasks, matchDict):
         tid_list.append(tod.id)
         if tod.id in matchDict.keys():
             matchDict[tod.id]['tod'] = tod
-    for tid in matchDict.keys():
+    for tid in list(matchDict):
         if tid not in tid_list:
             matchDict.pop(tid)
             
